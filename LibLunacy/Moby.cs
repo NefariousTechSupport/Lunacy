@@ -114,7 +114,7 @@ namespace LibLunacy
 				bangles = nmoby.bangles;
 				IGFile.SectionHeader namesection = file.QuerySection(0xD200);
 				name = file.sh.ReadString(namesection.offset);
-				scale = nmoby.scale * 0x2000;
+				scale = nmoby.scale * 0x8000;
 
 				IGFile.SectionHeader vertexsection = file.QuerySection(0xE200);
 				//SubStream vertexms = new SubStream(file.sh.BaseStream, vertexsection.offset, vertexsection.length);
@@ -135,7 +135,7 @@ namespace LibLunacy
 
 				bangles = omoby.bangles;
 				name = $"Moby_{index.ToString("X04")}";
-				scale = omoby.scale * 0x2000;
+				scale = omoby.scale * 0x8000;
 
 				IGFile vertexFile = al.fm.igfiles["vertices.dat"];
 
@@ -189,11 +189,8 @@ namespace LibLunacy
 		{
 			for(int i = 0; i < bangles.Length; i++)
 			{
-				Console.WriteLine($"Bangle {i+1}/{bangles.Length}");
 				for(int j = 0; j < bangles[i].count; j++)
 				{
-					Console.WriteLine($"Submesh {j+1}/{bangles[i].count}");
-
 					bangles[i].meshes[j].indices = new uint[bangles[i].meshes[j].indexCount];
 					indexStream.Seek(bangles[i].meshes[j].indexIndex * 2);
 					for(int k = 0; k < bangles[i].meshes[j].indexCount; k++)

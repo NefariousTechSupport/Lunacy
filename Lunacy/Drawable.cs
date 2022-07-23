@@ -12,7 +12,6 @@ namespace Lunacy
 			SetVertexPositions(mesh.vPositions);
 			SetVertexTexCoords(mesh.vTexCoords);
 			SetIndices(mesh.indices);
-			Console.WriteLine($"texture is null? {mesh.shader.albedo == null}");
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}

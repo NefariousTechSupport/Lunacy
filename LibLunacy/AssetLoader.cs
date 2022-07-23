@@ -95,7 +95,6 @@ namespace LibLunacy
 			IGFile.SectionHeader textureSection = main.QuerySection(0x5200);
 			for(int i = 0; i < textureSection.count; i++)
 			{
-				Console.WriteLine($"texture {i.ToString("X08")}");
 				textures.Add((uint)(textureSection.offset + i * 0x20), new CTexture(fm, i));
 			}
 		}

@@ -46,8 +46,6 @@ namespace LibLunacy
 			{
 				OldShader oshader = FileUtils.ReadStructure<OldShader>(file.sh);
 
-				Console.WriteLine($"tex offset for index {index.ToString("X08")}: {oshader.albedoOffset.ToString("X08")}");
-
 				if(oshader.albedoOffset != 0) albedo = al.textures[oshader.albedoOffset];
 				if(oshader.normalOffset != 0) normal = al.textures[oshader.normalOffset];
 				if(oshader.expensiveOffset != 0) expensive = al.textures[oshader.expensiveOffset];
@@ -59,8 +57,6 @@ namespace LibLunacy
 				IGFile.SectionHeader refSection = file.QuerySection(0x5D00);
 				file.sh.Seek(refSection.offset, SeekOrigin.Begin);
 				NewReferences refs = FileUtils.ReadStructure<NewReferences>(file.sh);
-
-				Console.WriteLine($"Handling shader {refs.thisTuid.ToString("X016")}'s dependancies");
 
 				if(refs.albedoTuid != 0 && al.textures.ContainsKey(refs.albedoTuid))       albedo    = al.textures[refs.albedoTuid];
 				if(refs.normalTuid != 0 && al.textures.ContainsKey(refs.normalTuid))       normal    = al.textures[refs.normalTuid];

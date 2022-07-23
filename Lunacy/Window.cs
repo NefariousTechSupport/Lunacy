@@ -5,8 +5,8 @@ namespace Lunacy
 		FileManager fm;
 		AssetLoader al;
 
-		DrawableListList drawable;
-		Transform transform = new Transform();
+		List<DrawableListList> drawables = new List<DrawableListList>();
+		List<Transform> transforms = new List<Transform>();
 
 		public Vector2 freecamLocal;
 
@@ -37,16 +37,23 @@ namespace Lunacy
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
-			GL.UseProgram(programHandle);
+			Gameplay gp = new Gameplay(al);
 
-			if(fm.isOld)
+			for(int i = 0; i < gp.regions.Length; i++)
 			{
-				//drawable = new DrawableListList(al.mobys[4]);						//ToD apogee space station ratchet
-				drawable = new DrawableListList(al.mobys[0xA3]);					//ToD apogee space station talwyn
-			}
-			else
-			{
-				drawable = new DrawableListList(al.mobys[0x04396A536A8F9378]);	//ACiT ratchet
+				drawables.Capacity += gp.regions[i].mobyInstances.Count;
+				transforms.Capacity += gp.regions[i].mobyInstances.Count;
+				KeyValuePair<ulong, Region.CMobyInstance>[] mobys = gp.regions[i].mobyInstances.ToArray();
+				for(ulong j = 0; j < (ulong)mobys.Length; j++)
+				{
+					drawables.Add(new DrawableListList(mobys[j].Value.moby));
+
+					transforms.Add(new Transform(
+						new Vector3(mobys[j].Value.position.X, mobys[j].Value.position.Y, mobys[j].Value.position.Z),
+						new Vector3(mobys[j].Value.rotation.X, mobys[j].Value.rotation.Y, mobys[j].Value.rotation.Z),
+						Vector3.One * mobys[j].Value.scale
+					));
+				}
 			}
 		}
 
@@ -56,7 +63,10 @@ namespace Lunacy
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			drawable.Draw(transform);
+			for(int i = 0; i < drawables.Count; i++)
+			{
+				drawables[i].Draw(transforms[i]);
+			}
 
 			SwapBuffers();
 		}
@@ -80,6 +90,8 @@ namespace Lunacy
 			freecamLocal.X = MathHelper.Clamp(freecamLocal.X, -MathHelper.PiOver2 + 0.0001f, MathHelper.PiOver2 - 0.0001f);
 
 			Camera.transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
+
+			Title = $"Lunacy Level Editor | {1 / args.Time}";
 
 			base.OnUpdateFrame(args);
 		}

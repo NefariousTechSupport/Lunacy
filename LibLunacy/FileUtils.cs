@@ -81,7 +81,7 @@ namespace LibLunacy
 				}
 
 
-					if(fields[i].FieldType == typeof(uint))                 field = sh.ReadUInt32();
+				     if(fields[i].FieldType == typeof(uint))                 field = sh.ReadUInt32();
 				else if(fields[i].FieldType == typeof(int))                  field = sh.ReadInt32();
 				else if(fields[i].FieldType == typeof(ushort))               field = sh.ReadUInt16();
 				else if(fields[i].FieldType == typeof(short))                field = sh.ReadInt16();
@@ -89,6 +89,7 @@ namespace LibLunacy
 				else if(fields[i].FieldType == typeof(long))                 field = sh.ReadInt64();
 				else if(fields[i].FieldType == typeof(float))                field = sh.ReadSingle();
 				else if(fields[i].FieldType == typeof(double))               field = sh.ReadDouble();
+				else if(fields[i].FieldType == typeof(string))               field = sh.ReadString();
 				else if(fields[i].FieldType == typeof(Vector3))              field = new Vector3(sh.ReadSingle(), sh.ReadSingle(), sh.ReadSingle());
 				else if(fields[i].FieldType.IsValueType)                     field = sh.ReadStruct(fields[i].FieldType);
 				else if(fields[i].FieldType.IsArray)
