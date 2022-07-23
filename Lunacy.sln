@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibLunacy", "LibLunacy\LibLunacy.csproj", "{51E3CA4C-84C7-4605-B342-770EC5F0451E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lunacy", "Lunacy\Lunacy.csproj", "{6C4F0C81-C777-4E17-81DE-4A6139167344}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetExtractor", "AssetExtractor\AssetExtractor.csproj", "{DD2066B5-AC6A-4844-8F69-CA4CD521CA66}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{51E3CA4C-84C7-4605-B342-770EC5F0451E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51E3CA4C-84C7-4605-B342-770EC5F0451E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51E3CA4C-84C7-4605-B342-770EC5F0451E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51E3CA4C-84C7-4605-B342-770EC5F0451E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C4F0C81-C777-4E17-81DE-4A6139167344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C4F0C81-C777-4E17-81DE-4A6139167344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C4F0C81-C777-4E17-81DE-4A6139167344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C4F0C81-C777-4E17-81DE-4A6139167344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD2066B5-AC6A-4844-8F69-CA4CD521CA66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD2066B5-AC6A-4844-8F69-CA4CD521CA66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD2066B5-AC6A-4844-8F69-CA4CD521CA66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD2066B5-AC6A-4844-8F69-CA4CD521CA66}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
