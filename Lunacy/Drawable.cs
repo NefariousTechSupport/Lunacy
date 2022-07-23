@@ -5,6 +5,7 @@ namespace Lunacy
 	//One example of such is blending, only some moby meshes have this and it would be a waste of memory to store this for ties, zone meshes, and shrubs.
 	public class Drawable
 	{
+		private List<Transform> transforms = new List<Transform>();
 		public Drawable(){}
 		public Drawable(ref CMoby.MobyMesh mesh)
 		{
@@ -16,6 +17,7 @@ namespace Lunacy
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
 
+		int VwBO;
 		int VpBO;
 		int VtcBO;
 		int VAO;
@@ -65,13 +67,50 @@ namespace Lunacy
 			material = mat;
 		}
 
-		public void Draw(Transform transform)
+		public void AddDrawCall(Transform transform)
+		{
+			transforms.Add(transform);
+		}
+
+		public void ConsolidateDrawCalls()
+		{
+			if(VwBO != 0) GL.DeleteBuffer(VwBO);
+
+			Matrix4[] transformMatrices = new Matrix4[transforms.Count];
+			for(int i = 0; i < transformMatrices.Length; i++)
+			{
+				transformMatrices[i] = transforms[i].GetLocalToWorldMatrix();
+			}
+
+			VwBO = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, VwBO);
+			GL.BufferData(BufferTarget.ArrayBuffer, transformMatrices.Length * sizeof(float) * 16, transformMatrices, BufferUsageHint.StaticDraw);	//Note: this should be edited in the future so mobys can be moved
+			
+			GL.BindVertexArray(VAO);
+			GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, 0);
+			GL.VertexAttribPointer(5, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
+			GL.VertexAttribPointer(6, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
+			GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
+			GL.VertexAttribDivisor(4, 1);
+			GL.VertexAttribDivisor(5, 1);
+			GL.VertexAttribDivisor(6, 1);
+			GL.VertexAttribDivisor(7, 1);
+			GL.EnableVertexAttribArray(4);
+			GL.EnableVertexAttribArray(5);
+			GL.EnableVertexAttribArray(6);
+			GL.EnableVertexAttribArray(7);
+		}
+
+		public void Draw()
 		{
 			material.Use();
-			material.SetMatrix4x4("world", transform.GetLocalToWorldMatrix() * Camera.WorldToView * Camera.ViewToClip);
+			for(int i = 0; i < transforms.Count; i++)
+			{
+				material.SetMatrix4x4("world", transforms[i].GetLocalToWorldMatrix() * Camera.WorldToView * Camera.ViewToClip);
 
-			GL.BindVertexArray(VAO);
-			GL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, 0);
+				GL.BindVertexArray(VAO);
+				GL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, 0);
+			}
 		}
 	}
 
@@ -85,11 +124,18 @@ namespace Lunacy
 				this.Add(new Drawable(ref bangle.meshes[i]));
 			}
 		}
-		public void Draw(Transform transform)
+		public void AddDrawCall(Transform transform)
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw(transform);
+				this[i].AddDrawCall(transform);
+			}
+		}
+		public void Draw()
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].Draw();
 			}
 		}
 	}
@@ -102,13 +148,20 @@ namespace Lunacy
 			for(int i = 0; i < moby.bangles.Length; i++)
 			{
 				this.Add(new DrawableList(ref moby.bangles[i]));
-			}			
+			}
 		}
-		public void Draw(Transform transform)
+		public void AddDrawCall(Transform transform)
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw(transform);
+				this[i].AddDrawCall(transform);
+			}
+		}
+		public void Draw()
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].Draw();
 			}
 		}
 	}

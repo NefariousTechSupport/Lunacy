@@ -31,6 +31,7 @@ namespace LibLunacy
 		public int width;
 		public int height;
 		public int mipmapCount;
+		public uint id;
 
 		public enum TexFormat
 		{
@@ -81,6 +82,8 @@ namespace LibLunacy
 
 				textures.Seek(otr.offset, SeekOrigin.Begin);
 				textures.Read(data);
+
+				id = (uint)(texrefs.offset + index * 0x20);
 			}
 			else
 			{
@@ -103,6 +106,8 @@ namespace LibLunacy
 				data = new byte[hmipPtr.length];
 				highmips.Seek(hmipPtr.offset, SeekOrigin.Begin);
 				highmips.Read(data);
+
+				id = (uint)hmipPtr.tuid;
 			}
 		}
 	}

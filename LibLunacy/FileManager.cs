@@ -44,6 +44,7 @@ namespace LibLunacy
 
 		public object LoadFile(string name, bool isRaw)
 		{
+			//If anyone's wondering, the following basically doubles ram usage, may be changed so the data isn't copied to a memory stream later
 			FileStream fs = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
 			MemoryStream ms = new MemoryStream((int)fs.Length);
 			fs.CopyTo(ms);

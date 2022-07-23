@@ -59,7 +59,7 @@ namespace LibLunacy
 				scale = omi.scale;
 				moby = al.mobys[omi.mobyIndex];
 			}
-			public CMobyInstance(NewMobyInstance nmi, AssetLoader al, IGFile region)
+			public CMobyInstance(NewMobyInstance nmi, NewInstance ni, AssetLoader al, IGFile region)
 			{
 				position = nmi.position;
 				rotation = nmi.rotation;
@@ -126,7 +126,7 @@ namespace LibLunacy
 			
 			for(int i = 0; i < mobys.Length; i++)
 			{
-				mobyInstances.Add(names[i].tuid, new CMobyInstance(mobys[i], al, region));
+				mobyInstances.Add(names[i].tuid, new CMobyInstance(mobys[i], names[i], al, region));
 			}
 		}
 	}

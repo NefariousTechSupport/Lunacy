@@ -6,9 +6,9 @@ namespace LibLunacy
 {
 	public class SubStream : Stream
 	{
-		public override bool CanRead => true;
-		public override bool CanSeek => true;
-		public override bool CanWrite => true;
+		public override bool CanRead => _base.CanRead;
+		public override bool CanSeek => _base.CanSeek;
+		public override bool CanWrite => _base.CanWrite;
 		public override long Length => _length;
 
 		public override long Position

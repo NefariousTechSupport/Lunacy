@@ -64,6 +64,7 @@ namespace LibLunacy
 			[FileOffset(0x1A)] public ushort bangleCount2;
 			[FileOffset(0x24), Reference("BangleCount")] public Bangle[] bangles;
 			[FileOffset(0x70)] public float scale;
+			[FileOffset(0xB0)] public ulong tuid;
 
 			public uint BangleCount
 			{
@@ -81,6 +82,7 @@ namespace LibLunacy
 		public string name;
 		public float scale;
 		public IGFile file;
+		public ulong id;		//Either tuid or index depending on game
 
 		//public List<int> indices = new List<int>();
 		//public List<float> vps = new List<float>();
@@ -127,6 +129,8 @@ namespace LibLunacy
 				file.sh.Seek(indexsection.offset);
 				MemoryStream indexms = new MemoryStream(file.sh.ReadBytes(indexsection.length));
 				indexStream = new StreamHelper(indexms, file.sh._endianness);
+
+				id = nmoby.tuid;
 			}
 			else
 			{
@@ -177,13 +181,17 @@ namespace LibLunacy
 
 				vertexStream = new StreamHelper(vertexms, file.sh._endianness);
 				indexStream = new StreamHelper(indexms, file.sh._endianness);
+
+				id = index;
 			}
+
 
 			InitializeBuffers(vertexStream, indexStream);
 			vertexStream.Close();
 			indexStream.Close();
 
 			LoadDependancies(al);
+			GC.Collect();
 		}
 		private void InitializeBuffers(StreamHelper vertexStream, StreamHelper indexStream)
 		{

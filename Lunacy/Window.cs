@@ -3,7 +3,8 @@ namespace Lunacy
 	public class Window : GameWindow
 	{
 		FileManager fm;
-		AssetLoader al;
+		AssetLoader al;		// handles loading assets from files
+		AssetManager am;	// handles converting assets to OpenGL
 
 		List<DrawableListList> drawables = new List<DrawableListList>();
 		List<Transform> transforms = new List<Transform>();
@@ -37,6 +38,9 @@ namespace Lunacy
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
+			am = new AssetManager();
+			am.Initialize(al);
+
 			Gameplay gp = new Gameplay(al);
 
 			for(int i = 0; i < gp.regions.Length; i++)
@@ -46,9 +50,7 @@ namespace Lunacy
 				KeyValuePair<ulong, Region.CMobyInstance>[] mobys = gp.regions[i].mobyInstances.ToArray();
 				for(ulong j = 0; j < (ulong)mobys.Length; j++)
 				{
-					drawables.Add(new DrawableListList(mobys[j].Value.moby));
-
-					transforms.Add(new Transform(
+					am.mobys[mobys[j].Value.moby.id].AddDrawCall(new Transform(
 						new Vector3(mobys[j].Value.position.X, mobys[j].Value.position.Y, mobys[j].Value.position.Z),
 						new Vector3(mobys[j].Value.rotation.X, mobys[j].Value.rotation.Y, mobys[j].Value.rotation.Z),
 						Vector3.One * mobys[j].Value.scale
@@ -63,9 +65,9 @@ namespace Lunacy
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			for(int i = 0; i < drawables.Count; i++)
+			foreach(KeyValuePair<ulong, DrawableListList> moby in am.mobys)
 			{
-				drawables[i].Draw(transforms[i]);
+				moby.Value.Draw();
 			}
 
 			SwapBuffers();
