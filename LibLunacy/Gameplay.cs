@@ -33,7 +33,7 @@ namespace LibLunacy
 					
 					string regionName = file.sh.ReadString(file.sh.ReadUInt32());
 					Console.WriteLine($"Region {i}: {regionName}");
-					regions[0] = new Region(al, regionName);
+					regions[i] = new Region(al, regionName);
 				}
 			}
 		}

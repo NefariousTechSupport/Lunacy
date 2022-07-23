@@ -74,43 +74,33 @@ namespace Lunacy
 
 		public void ConsolidateDrawCalls()
 		{
-			if(VwBO != 0) GL.DeleteBuffer(VwBO);
-
 			Matrix4[] transformMatrices = new Matrix4[transforms.Count];
 			for(int i = 0; i < transformMatrices.Length; i++)
 			{
-				transformMatrices[i] = transforms[i].GetLocalToWorldMatrix();
+				transformMatrices[i] = Matrix4.Transpose(transforms[i].GetLocalToWorldMatrix());
 			}
 
 			VwBO = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, VwBO);
-			GL.BufferData(BufferTarget.ArrayBuffer, transformMatrices.Length * sizeof(float) * 16, transformMatrices, BufferUsageHint.StaticDraw);	//Note: this should be edited in the future so mobys can be moved
+			GL.BufferData(BufferTarget.ArrayBuffer, transformMatrices.Length * sizeof(float) * 16, transformMatrices, BufferUsageHint.DynamicDraw);	//Note: this should be edited in the future so things can be moved
 			
 			GL.BindVertexArray(VAO);
-			GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, 0);
-			GL.VertexAttribPointer(5, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
-			GL.VertexAttribPointer(6, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
-			GL.VertexAttribPointer(7, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4);
-			GL.VertexAttribDivisor(4, 1);
-			GL.VertexAttribDivisor(5, 1);
-			GL.VertexAttribDivisor(6, 1);
-			GL.VertexAttribDivisor(7, 1);
-			GL.EnableVertexAttribArray(4);
-			GL.EnableVertexAttribArray(5);
-			GL.EnableVertexAttribArray(6);
-			GL.EnableVertexAttribArray(7);
+
+			for(int i = 0; i < 4; i++)
+			{
+				GL.VertexAttribPointer(4+i, 4, VertexAttribPointerType.Float, false, sizeof(float) * 16, sizeof(float) * 4 * i);
+				GL.VertexAttribDivisor(4+i, 1);
+				GL.EnableVertexAttribArray(4+i);
+			}
 		}
 
 		public void Draw()
 		{
 			material.Use();
-			for(int i = 0; i < transforms.Count; i++)
-			{
-				material.SetMatrix4x4("world", transforms[i].GetLocalToWorldMatrix() * Camera.WorldToView * Camera.ViewToClip);
+			material.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
 
-				GL.BindVertexArray(VAO);
-				GL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, 0);
-			}
+			GL.BindVertexArray(VAO);
+			GL.DrawElementsInstanced(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, transforms.Count);
 		}
 	}
 
@@ -131,6 +121,14 @@ namespace Lunacy
 				this[i].AddDrawCall(transform);
 			}
 		}
+		public void ConsolidateDrawCalls()
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].ConsolidateDrawCalls();
+			}
+		}
+
 		public void Draw()
 		{
 			for(int i = 0; i < Count; i++)
@@ -155,6 +153,13 @@ namespace Lunacy
 			for(int i = 0; i < Count; i++)
 			{
 				this[i].AddDrawCall(transform);
+			}
+		}
+		public void ConsolidateDrawCalls()
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].ConsolidateDrawCalls();
 			}
 		}
 		public void Draw()

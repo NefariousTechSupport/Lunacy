@@ -6,9 +6,6 @@ namespace Lunacy
 		AssetLoader al;		// handles loading assets from files
 		AssetManager am;	// handles converting assets to OpenGL
 
-		List<DrawableListList> drawables = new List<DrawableListList>();
-		List<Transform> transforms = new List<Transform>();
-
 		public Vector2 freecamLocal;
 
 		public Window(GameWindowSettings gws, NativeWindowSettings nws, string folderPath) : base(gws, nws)
@@ -45,8 +42,6 @@ namespace Lunacy
 
 			for(int i = 0; i < gp.regions.Length; i++)
 			{
-				drawables.Capacity += gp.regions[i].mobyInstances.Count;
-				transforms.Capacity += gp.regions[i].mobyInstances.Count;
 				KeyValuePair<ulong, Region.CMobyInstance>[] mobys = gp.regions[i].mobyInstances.ToArray();
 				for(ulong j = 0; j < (ulong)mobys.Length; j++)
 				{
@@ -57,6 +52,12 @@ namespace Lunacy
 					));
 				}
 			}
+
+			foreach(KeyValuePair<ulong, DrawableListList> moby in am.mobys)
+			{
+				moby.Value.ConsolidateDrawCalls();
+			}
+
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs args)
