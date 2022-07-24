@@ -6,6 +6,7 @@ namespace LibLunacy
 	{
 		IGFile file;
 		public Region[] regions;
+		public Zone[] zones;
 
 		public Gameplay(AssetLoader al)
 		{
@@ -15,6 +16,9 @@ namespace LibLunacy
 			{
 				regions = new Region[1];
 				regions[0] = new Region(file, al);
+
+				zones = new Zone[1];
+				zones[0] = new Zone(al.fm.igfiles["main.dat"], al);
 			}
 			else
 			{
@@ -35,6 +39,46 @@ namespace LibLunacy
 					Console.WriteLine($"Region {i}: {regionName}");
 					regions[i] = new Region(al, regionName);
 				}
+			}
+		}
+	}
+
+	public class Zone
+	{
+		[FileStructure(0x80)]
+		public struct OldTieInstance
+		{
+			[FileOffset(0x00)] public Matrix4x4 transformation;
+			[FileOffset(0x50)] public uint tie;					//Offset but used as a key into the assetloader ties dictionary
+		}
+		
+
+		public string name = string.Empty;
+		public Dictionary<ulong, CTieInstance> tieInstances = new Dictionary<ulong, CTieInstance>();
+
+		public class CTieInstance
+		{
+			public string name = string.Empty;
+			public Matrix4x4 transformation;
+			public CTie tie;
+
+			public CTieInstance(OldTieInstance omi, AssetLoader al)
+			{
+				transformation = omi.transformation;
+				tie = al.ties[omi.tie];
+			}
+		}
+
+		public Zone(IGFile file, AssetLoader al)
+		{
+			IGFile.SectionHeader tieInstSections = file.QuerySection(0x9240);
+			file.sh.Seek(tieInstSections.offset);
+			OldTieInstance[] ties = FileUtils.ReadStructureArray<OldTieInstance>(file.sh, tieInstSections.count);
+
+			for(int i = 0; i < ties.Length; i++)
+			{
+				tieInstances.Add((ulong)i, new CTieInstance(ties[i], al));
+				tieInstances.Last().Value.name = $"Tie_{i}";
 			}
 		}
 	}

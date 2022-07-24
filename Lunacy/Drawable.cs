@@ -24,6 +24,15 @@ namespace Lunacy
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
+		public Drawable(ref CTie.TieMesh mesh)
+		{
+			Prepare();
+			SetVertexPositions(mesh.vPositions);
+			SetVertexTexCoords(mesh.vTexCoords);
+			SetIndices(mesh.indices);
+			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
+			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
+		}
 
 		public void Prepare()
 		{
@@ -138,6 +147,14 @@ namespace Lunacy
 			for(int i = 0; i < bangle.count; i++)
 			{
 				this.Add(new Drawable(ref bangle.meshes[i]));
+			}
+		}
+		public DrawableList(CTie tie)
+		{
+			this.Capacity = (int)tie.meshes.Length;
+			for(int i = 0; i < tie.meshes.Length; i++)
+			{
+				this.Add(new Drawable(ref tie.meshes[i]));
 			}
 		}
 		public void AddDrawCall(Transform transform)

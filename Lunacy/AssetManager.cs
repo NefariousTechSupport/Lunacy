@@ -7,6 +7,7 @@ namespace Lunacy
 		public static AssetManager Singleton => lazy.Value;
 
 		public Dictionary<ulong, DrawableListList> mobys = new Dictionary<ulong, DrawableListList>();
+		public Dictionary<ulong, DrawableList> ties = new Dictionary<ulong, DrawableList>();
 		public Dictionary<uint, Texture> textures = new Dictionary<uint, Texture>();
 
 		public void Initialize(AssetLoader al)
@@ -20,6 +21,10 @@ namespace Lunacy
 			{
 				mobys.Add(moby.Key, new DrawableListList(moby.Value));
 			}
+			foreach(KeyValuePair<ulong, CTie> tie in al.ties)
+			{
+				ties.Add(tie.Key, new DrawableList(tie.Value));
+			}
 		}
 
 		public void ConsolidateMobys()
@@ -27,6 +32,13 @@ namespace Lunacy
 			foreach(KeyValuePair<ulong, DrawableListList> moby in AssetManager.Singleton.mobys)
 			{
 				moby.Value.ConsolidateDrawCalls();
+			}
+		}
+		public void ConsolidateTies()
+		{
+			foreach(KeyValuePair<ulong, DrawableList> tie in AssetManager.Singleton.ties)
+			{
+				tie.Value.ConsolidateDrawCalls();
 			}
 		}
 	}

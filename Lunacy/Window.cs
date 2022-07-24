@@ -25,6 +25,7 @@ namespace Lunacy
 			al.LoadTextures();
 			al.LoadShaders();
 			al.LoadMobys();
+			al.LoadTies();
 		}
 
 		protected override void OnLoad()

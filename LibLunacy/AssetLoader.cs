@@ -5,6 +5,7 @@ namespace LibLunacy
 		public FileManager fm;
 		
 		public Dictionary<ulong, CMoby> mobys = new Dictionary<ulong, CMoby>();
+		public Dictionary<ulong, CTie> ties = new Dictionary<ulong, CTie>();
 		public Dictionary<ulong, CShader> shaders = new Dictionary<ulong, CShader>();
 		public Dictionary<uint, CTexture> textures = new Dictionary<uint, CTexture>();
 
@@ -45,6 +46,42 @@ namespace LibLunacy
 				CMoby moby = new CMoby(igmoby, this);
 				Console.WriteLine($"Moby {i.ToString("X04")} is {moby.name}");
 				mobys.Add(mobyPtrs[i].tuid, moby);
+			}
+		}
+
+		public void LoadTies()
+		{
+			if(fm.isOld) LoadTiesOld();
+			else         LoadTiesNew();
+		}
+		private void LoadTiesOld()
+		{
+			IGFile main = fm.igfiles["main.dat"];
+			IGFile.SectionHeader tieSection = main.QuerySection(0x3400);
+			for(int i = 0; i < tieSection.count; i++)
+			{
+				CTie tie = new CTie(main, this, (uint)i);
+				ties.Add(tie.id, tie);
+			}
+		}
+		private void LoadTiesNew()
+		{
+			IGFile assetlookup = fm.igfiles["assetlookup.dat"];
+			IGFile.SectionHeader tieSection = assetlookup.QuerySection(0x1D300);
+			assetlookup.sh.Seek(tieSection.offset);
+			AssetPointer[] tiePtrs = FileUtils.ReadStructureArray<AssetPointer>(assetlookup.sh, tieSection.length / 0x10);
+			Stream tieStream = fm.rawfiles["ties.dat"];
+			for(int i = 0; i < tiePtrs.Length; i++)
+			{
+				byte[] tiedat = new byte[tiePtrs[i].length];
+				tieStream.Seek(tiePtrs[i].offset, SeekOrigin.Begin);
+				tieStream.Read(tiedat, 0x00, (int)tiePtrs[i].length);
+				MemoryStream tiems = new MemoryStream(tiedat);
+
+				IGFile igtie = new IGFile(tiems);
+				CTie tie = new CTie(igtie, this);
+				Console.WriteLine($"tie {i.ToString("X04")} is {tie.name}");
+				ties.Add(tiePtrs[i].tuid, tie);
 			}
 		}
 

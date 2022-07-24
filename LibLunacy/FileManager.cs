@@ -33,7 +33,7 @@ namespace LibLunacy
 
 				//Load raw files, a lot of these are actually a bunch of IGFiles, however the files themselves are not IGFiles
 				LoadFile("mobys.dat", true);
-				//LoadFile("ties.dat", true);
+				LoadFile("ties.dat", true);
 				LoadFile("textures.dat", true);
 				LoadFile("highmips.dat", true);
 				LoadFile("shaders.dat", true);

@@ -31,10 +31,7 @@ namespace LibLunacy
 			[FileOffset(0x00), Reference("MetadataCount")] public MobyMesh[] meshes;
 			[FileOffset(0x04)] public uint count;
 
-			public uint MetadataCount
-			{
-				get => count;
-			}
+			public uint MetadataCount => count;
 		}
 
 		[FileStructure(0xC0)]
@@ -49,10 +46,7 @@ namespace LibLunacy
 			[FileOffset(0x38)] public uint vertexOffset;
 			[FileOffset(0x3C)] public float scale;
 
-			public uint BangleCount
-			{
-				get => bangleCount1;//(uint)(bangleCount1 * (bangleCount2 + 1));
-			}
+			public uint BangleCount => bangleCount1;//(uint)(bangleCount1 * (bangleCount2 + 1));
 		}
 
 		[FileStructure(0x100)]
@@ -66,16 +60,7 @@ namespace LibLunacy
 			[FileOffset(0x70)] public float scale;
 			[FileOffset(0xB0)] public ulong tuid;
 
-			public uint BangleCount
-			{
-				get => bangleCount1;//(uint)(bangleCount1 * (bangleCount2 + 1));
-			}
-		}
-
-		private enum VertexAttriubute
-		{
-			Positions,
-			TexCoords,
+			public uint BangleCount => bangleCount1;//(uint)(bangleCount1 * (bangleCount2 + 1));
 		}
 
 		public Bangle[] bangles;
@@ -83,9 +68,6 @@ namespace LibLunacy
 		public float scale;
 		public IGFile file;
 		public ulong id;		//Either tuid or index depending on game
-
-		//public List<int> indices = new List<int>();
-		//public List<float> vps = new List<float>();
 
 		public uint MetadataCount
 		{
@@ -116,7 +98,7 @@ namespace LibLunacy
 				bangles = nmoby.bangles;
 				IGFile.SectionHeader namesection = file.QuerySection(0xD200);
 				name = file.sh.ReadString(namesection.offset);
-				scale = nmoby.scale * 0x8000;
+				scale = nmoby.scale;
 
 				IGFile.SectionHeader vertexsection = file.QuerySection(0xE200);
 				//SubStream vertexms = new SubStream(file.sh.BaseStream, vertexsection.offset, vertexsection.length);
@@ -139,7 +121,7 @@ namespace LibLunacy
 
 				bangles = omoby.bangles;
 				name = $"Moby_{index.ToString("X04")}";
-				scale = omoby.scale * 0x8000;
+				scale = omoby.scale;
 
 				IGFile vertexFile = al.fm.igfiles["vertices.dat"];
 
@@ -213,9 +195,9 @@ namespace LibLunacy
 					for(int k = 0; k < bangles[i].meshes[j].vertexCount; k++)
 					{
 						vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * k + 0x00);
-						bangles[i].meshes[j].vPositions[k * 3 + 0] = (vertexStream.ReadInt16() / (float)0x7FFF) * scale;
-						bangles[i].meshes[j].vPositions[k * 3 + 1] = (vertexStream.ReadInt16() / (float)0x7FFF) * scale;
-						bangles[i].meshes[j].vPositions[k * 3 + 2] = (vertexStream.ReadInt16() / (float)0x7FFF) * scale;
+						bangles[i].meshes[j].vPositions[k * 3 + 0] = vertexStream.ReadInt16() * scale;
+						bangles[i].meshes[j].vPositions[k * 3 + 1] = vertexStream.ReadInt16() * scale;
+						bangles[i].meshes[j].vPositions[k * 3 + 2] = vertexStream.ReadInt16() * scale;
 
 						vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * k + (bangles[i].meshes[j].vertexType == 1 ? 0x10 : 0x08));
 

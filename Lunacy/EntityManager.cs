@@ -7,6 +7,7 @@ namespace Lunacy
 		public static EntityManager Singleton => lazy.Value;
 
 		public Dictionary<string, List<Entity>> MobyHandles = new Dictionary<string, List<Entity>>();
+		public List<List<Entity>> TieInstances = new List<List<Entity>>();
 
 		List<Entity> mobys = new List<Entity>();
 
@@ -23,6 +24,18 @@ namespace Lunacy
 			}
 
 			AssetManager.Singleton.ConsolidateMobys();
+
+			for(int i = 0; i < gp.zones.Length; i++)
+			{
+				TieInstances.Add(new List<Entity>());
+				KeyValuePair<ulong, Zone.CTieInstance>[] ties = gp.zones[i].tieInstances.ToArray();
+				for(ulong j = 0; j < (ulong)ties.Length; j++)
+				{
+					TieInstances[i].Add(new Entity(ties[j].Value));
+				}
+			}
+
+			AssetManager.Singleton.ConsolidateTies();
 		}
 
 		private void ReallocEntities()
@@ -48,6 +61,10 @@ namespace Lunacy
 			{
 				moby.Value.Draw();
 			}
+			foreach(KeyValuePair<ulong, DrawableList> tie in AssetManager.Singleton.ties)
+			{
+				tie.Value.Draw();
+			}
 		}
 	}
 
@@ -72,18 +89,24 @@ namespace Lunacy
 			name = mobyInstance.name;
 			(drawable as DrawableListList).AddDrawCall(transform);
 		}
+		public Entity(Zone.CTieInstance tieInstance)
+		{
+			instance = tieInstance;
+			drawable = AssetManager.Singleton.ties[tieInstance.tie.id];
+			transform = new Transform(Utils.ToOpenTKMatrix4(tieInstance.transformation));
+			(drawable as DrawableList).AddDrawCall(transform);
+		}
 
 		public void SetPosition(Vector3 position)
 		{
 			transform.Position = position;
-			if(drawable is DrawableListList dll)
-			{
-				dll.UpdateTransform(transform);
-			}
+			if(drawable is DrawableListList dll) dll.UpdateTransform(transform);
+			else if(drawable is DrawableList dl) dl.UpdateTransform(transform);
 		}
 		public void Draw()
 		{
-			(drawable as DrawableListList).Draw(transform);
+			if(drawable is DrawableListList dll) dll.Draw();
+			else if(drawable is DrawableList dl) dl.Draw();
 		}
 	}
 }
