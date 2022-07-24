@@ -41,7 +41,7 @@ namespace LibLunacy
 
 	public class Region
 	{
-		string name = "default";
+		public string name = "default";
 
 		public Dictionary<ulong, CMobyInstance> mobyInstances = new Dictionary<ulong, CMobyInstance>();
 
@@ -51,6 +51,7 @@ namespace LibLunacy
 			public Vector3 rotation;
 			public float scale;
 			public CMoby moby;
+			public string name;
 
 			public CMobyInstance(OldMobyInstance omi, AssetLoader al)
 			{
@@ -108,6 +109,7 @@ namespace LibLunacy
 			for(int i = 0; i < mobys.Length; i++)
 			{
 				mobyInstances.Add((ulong)i, new CMobyInstance(mobys[i], al));
+				mobyInstances.Last().Value.name = $"Moby_{i}";
 			}
 		}
 		public Region(AssetLoader al, string regionName)
@@ -127,6 +129,7 @@ namespace LibLunacy
 			for(int i = 0; i < mobys.Length; i++)
 			{
 				mobyInstances.Add(names[i].tuid, new CMobyInstance(mobys[i], names[i], al, region));
+				mobyInstances.Last().Value.name = names[i].name;
 			}
 		}
 	}

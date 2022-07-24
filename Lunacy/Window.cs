@@ -1,3 +1,5 @@
+using ImGuiNET;
+
 namespace Lunacy
 {
 	public class Window : GameWindow
@@ -5,6 +7,9 @@ namespace Lunacy
 		FileManager fm;
 		AssetLoader al;		// handles loading assets from files
 		AssetManager am;	// handles converting assets to OpenGL
+		Gameplay gp;
+
+		ImGuiController guiController;
 
 		public Vector2 freecamLocal;
 
@@ -35,10 +40,12 @@ namespace Lunacy
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
+			guiController = new ImGuiController(ClientSize.X, ClientSize.Y);
+
 			am = new AssetManager();
 			am.Initialize(al);
 
-			Gameplay gp = new Gameplay(al);
+			gp = new Gameplay(al);
 
 			for(int i = 0; i < gp.regions.Length; i++)
 			{
@@ -66,10 +73,29 @@ namespace Lunacy
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+			guiController.Update(this, (float)args.Time);
+
 			foreach(KeyValuePair<ulong, DrawableListList> moby in am.mobys)
 			{
 				moby.Value.Draw();
 			}
+
+			ImGui.Begin("Regions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+			for(int i = 0; i < gp.regions.Length; i++)
+			{
+				if(ImGui.CollapsingHeader(gp.regions[i].name, ImGuiTreeNodeFlags.None))
+				{
+					foreach(KeyValuePair<ulong, Region.CMobyInstance> moby in gp.regions[i].mobyInstances)
+					{
+						ImGui.Text(moby.Value.name);
+					}
+				}
+			}
+			ImGui.End();
+
+			//ImGui.ShowDemoWindow();
+
+			guiController.Render();
 
 			SwapBuffers();
 		}
