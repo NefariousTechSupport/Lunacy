@@ -7,6 +7,8 @@ namespace Lunacy
 		public PrimitiveType drawType;
 		public uint numUsing = 0;
 
+		Dictionary<string, int> uniforms = new Dictionary<string, int>();
+
 		public Material(int handle, Texture? albedo = null, PrimitiveType primitiveType = PrimitiveType.Triangles)
 		{
 			this.albedo = albedo;
@@ -16,7 +18,7 @@ namespace Lunacy
 
 		public void Use()
 		{
-			GL.UseProgram(programId);
+			SimpleUse();
 			if(albedo != null)
 			{
 				albedo.Use();
@@ -28,19 +30,24 @@ namespace Lunacy
 				SetBool("useTexture", false);
 			}
 		}
-
-		public void SetMatrix4x4(string name, Matrix4 data)
+		public void SimpleUse()
 		{
-			int dataLocation = GL.GetUniformLocation(programId, name);
-			GL.UniformMatrix4(dataLocation, true, ref data);
+			GL.UseProgram(programId);
 		}
+
+		public void SetMatrix4x4(string name, Matrix4 data) => GL.UniformMatrix4(GetUniformLocation(name), true, ref data);
 
 		public void SetBool(string name, bool data) => SetInt(name, data ? 1 : 0);
 
-		public void SetInt(string name, int data)
+		public void SetInt(string name, int data) => GL.Uniform1(GetUniformLocation(name), data);
+
+		private int GetUniformLocation(string name)
 		{
-			int dataLocation = GL.GetUniformLocation(programId, name);
-			GL.Uniform1(dataLocation, data);
+			if(!uniforms.ContainsKey(name))
+			{
+				uniforms.Add(name, GL.GetUniformLocation(programId, name));
+			}
+			return uniforms[name];
 		}
 
 		public void Dispose()

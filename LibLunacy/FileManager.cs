@@ -30,7 +30,6 @@ namespace LibLunacy
 				//Load IGFiles
 				LoadFile("gameplay.dat", false);
 				LoadFile("assetlookup.dat", false);
-				//LoadFile("gameplay.dat", false);
 
 				//Load raw files, a lot of these are actually a bunch of IGFiles, however the files themselves are not IGFiles
 				LoadFile("mobys.dat", true);
@@ -44,11 +43,14 @@ namespace LibLunacy
 
 		public object LoadFile(string name, bool isRaw)
 		{
-			//If anyone's wondering, the following basically doubles ram usage, may be changed so the data isn't copied to a memory stream later
-			FileStream fs = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
+			//If anyone's wondering, the following basically doubles ram usage but doesn't latch onto files, useful for debugging
+			/*FileStream fs = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
 			MemoryStream ms = new MemoryStream((int)fs.Length);
 			fs.CopyTo(ms);
-			fs.Close();
+			fs.Close();*/
+
+			//The following doesn't use as much ram but holds onto files
+			FileStream ms = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
 
 			if(isRaw)
 			{

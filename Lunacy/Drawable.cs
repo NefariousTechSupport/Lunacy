@@ -6,6 +6,14 @@ namespace Lunacy
 	public class Drawable
 	{
 		private List<Transform> transforms = new List<Transform>();
+		int VwBO;
+		int VpBO;
+		int VtcBO;
+		int VAO;
+		int EBO;
+		int indexCount;
+		Material material;
+
 		public Drawable(){}
 		public Drawable(ref CMoby.MobyMesh mesh)
 		{
@@ -16,14 +24,6 @@ namespace Lunacy
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
-
-		int VwBO;
-		int VpBO;
-		int VtcBO;
-		int VAO;
-		int EBO;
-		int indexCount;
-		Material material;
 
 		public void Prepare()
 		{
@@ -102,6 +102,32 @@ namespace Lunacy
 			GL.BindVertexArray(VAO);
 			GL.DrawElementsInstanced(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, transforms.Count);
 		}
+
+		public void Draw(Transform transform)
+		{
+			material.Use();
+			material.SetMatrix4x4("world", transform.GetLocalToWorldMatrix() * Camera.WorldToView * Camera.ViewToClip);
+
+			GL.BindVertexArray(VAO);
+			GL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+		}
+
+		public void SimpleDraw()
+		{
+			material.SimpleUse();
+			GL.BindVertexArray(VAO);
+			GL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+		}
+
+		public void UpdateTransform(Transform transform)
+		{
+			int index = transforms.FindIndex(0, transforms.Count, x => x == transform);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, VwBO);
+			Matrix4[] matrix = new Matrix4[1] { Matrix4.Transpose(transform.GetLocalToWorldMatrix()) };
+			
+			GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(sizeof(float) * 16 * index), sizeof(float) * 16, matrix);
+		}
 	}
 
 	public class DrawableList : List<Drawable>
@@ -136,6 +162,23 @@ namespace Lunacy
 				this[i].Draw();
 			}
 		}
+
+		public void Draw(Transform transform)
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].Draw(transform);
+			}
+		}
+
+		public void UpdateTransform(Transform transform)
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].UpdateTransform(transform);
+			}
+		}
+
 	}
 
 	public class DrawableListList : List<DrawableList>
@@ -167,6 +210,20 @@ namespace Lunacy
 			for(int i = 0; i < Count; i++)
 			{
 				this[i].Draw();
+			}
+		}
+		public void Draw(Transform transform)
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].Draw(transform);
+			}
+		}
+		public void UpdateTransform(Transform transform)
+		{
+			for(int i = 0; i < Count; i++)
+			{
+				this[i].UpdateTransform(transform);
 			}
 		}
 	}

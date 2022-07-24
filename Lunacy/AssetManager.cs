@@ -21,5 +21,13 @@ namespace Lunacy
 				mobys.Add(moby.Key, new DrawableListList(moby.Value));
 			}
 		}
+
+		public void ConsolidateMobys()
+		{
+			foreach(KeyValuePair<ulong, DrawableListList> moby in AssetManager.Singleton.mobys)
+			{
+				moby.Value.ConsolidateDrawCalls();
+			}
+		}
 	}
 }

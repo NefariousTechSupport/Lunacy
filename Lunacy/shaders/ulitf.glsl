@@ -1,6 +1,6 @@
-#version 330
+#version 440 core
 
-out vec4 colour;
+out vec4 color;
 
 in vec2 UVs;
 
@@ -11,11 +11,10 @@ void main()
 {
 	if(useTexture)
 	{
-		colour = texture(albedo, UVs);
-		if(colour.a < 0.1f) discard;
+		color = texture(albedo, UVs);
 	}
 	else
 	{
-		colour = vec4(1.0, 0.0, 1.0, 1.0);
+		color = vec4(1.0, 0.0, 1.0, 1.0);
 	}
 }

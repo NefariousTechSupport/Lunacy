@@ -1,4 +1,4 @@
-using ImGuiNET;
+using System.ComponentModel;
 
 namespace Lunacy
 {
@@ -6,10 +6,9 @@ namespace Lunacy
 	{
 		FileManager fm;
 		AssetLoader al;		// handles loading assets from files
-		AssetManager am;	// handles converting assets to OpenGL
 		Gameplay gp;
 
-		ImGuiController guiController;
+		GUI gui;
 
 		public Vector2 freecamLocal;
 
@@ -32,70 +31,46 @@ namespace Lunacy
 		{
 			base.OnLoad();
 
-			GL.ClearColor(0, 0, 0, 0);
+			GL.ClearColor(0.1f, 0.1f, 0.1f, 0);
 			GL.Enable(EnableCap.DepthTest);
 			GL.Enable(EnableCap.Texture2D);
+			//GL.Enable(EnableCap.StencilTest);
+			GL.Enable(EnableCap.CullFace);
+			//GL.Enable(EnableCap.Blend);
+			//GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One, BlendingFactorDest.Zero);
 
 			int programHandle = MaterialManager.LoadMaterial("stdv;ulitf", "shaders/stdv.glsl", "shaders/ulitf.glsl");
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
-			guiController = new ImGuiController(ClientSize.X, ClientSize.Y);
+			gui = new GUI(this);
 
-			am = new AssetManager();
-			am.Initialize(al);
+			AssetManager.Singleton.Initialize(al);
 
 			gp = new Gameplay(al);
 
-			for(int i = 0; i < gp.regions.Length; i++)
-			{
-				KeyValuePair<ulong, Region.CMobyInstance>[] mobys = gp.regions[i].mobyInstances.ToArray();
-				for(ulong j = 0; j < (ulong)mobys.Length; j++)
-				{
-					am.mobys[mobys[j].Value.moby.id].AddDrawCall(new Transform(
-						new Vector3(mobys[j].Value.position.X, mobys[j].Value.position.Y, mobys[j].Value.position.Z),
-						new Vector3(mobys[j].Value.rotation.X, mobys[j].Value.rotation.Y, mobys[j].Value.rotation.Z),
-						Vector3.One * mobys[j].Value.scale
-					));
-				}
-			}
-
-			foreach(KeyValuePair<ulong, DrawableListList> moby in am.mobys)
-			{
-				moby.Value.ConsolidateDrawCalls();
-			}
-
+			EntityManager.Singleton.LoadGameplay(gp);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs args)
 		{
 			base.OnRenderFrame(args);
 
+			//GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			guiController.Update(this, (float)args.Time);
+			gui.FrameBegin(args.Time);
 
-			foreach(KeyValuePair<ulong, DrawableListList> moby in am.mobys)
+			/*foreach(KeyValuePair<ulong, DrawableListList> moby in AssetManager.Singleton.mobys)
 			{
 				moby.Value.Draw();
-			}
+			}*/
 
-			ImGui.Begin("Regions", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
-			for(int i = 0; i < gp.regions.Length; i++)
-			{
-				if(ImGui.CollapsingHeader(gp.regions[i].name, ImGuiTreeNodeFlags.None))
-				{
-					foreach(KeyValuePair<ulong, Region.CMobyInstance> moby in gp.regions[i].mobyInstances)
-					{
-						ImGui.Text(moby.Value.name);
-					}
-				}
-			}
-			ImGui.End();
+			EntityManager.Singleton.Render();
 
-			//ImGui.ShowDemoWindow();
+			gui.ShowRegionsWindow();
 
-			guiController.Render();
+			gui.FrameEnd();
 
 			SwapBuffers();
 		}
@@ -123,6 +98,11 @@ namespace Lunacy
 			Title = $"Lunacy Level Editor | {1 / args.Time}";
 
 			base.OnUpdateFrame(args);
+		}
+
+		protected override void OnClosing(CancelEventArgs e)
+		{
+			base.OnClosing(e);
 		}
 	}
 }
