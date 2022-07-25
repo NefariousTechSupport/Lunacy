@@ -37,7 +37,7 @@ namespace LibLunacy
 				LoadFile("textures.dat", true);
 				LoadFile("highmips.dat", true);
 				LoadFile("shaders.dat", true);
-				//LoadFile("zones.dat", true);
+				LoadFile("zones.dat", true);
 			}
 		}
 

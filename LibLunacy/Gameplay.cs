@@ -22,6 +22,8 @@ namespace LibLunacy
 			}
 			else
 			{
+				//Loading regions
+
 				IGFile.SectionHeader stringTableSection = file.QuerySection(0x25000);
 
 				//gameplay.dat is a weird file in this version of the engine, the count field of section headers is the length and length field of section headers is 0
@@ -39,6 +41,25 @@ namespace LibLunacy
 					Console.WriteLine($"Region {i}: {regionName}");
 					regions[i] = new Region(al, regionName);
 				}
+
+				//Loading zones
+
+				IGFile assetlookup = al.fm.igfiles["assetlookup.dat"];
+				IGFile.SectionHeader zoneSection = assetlookup.QuerySection(0x1DA00);
+				assetlookup.sh.Seek(zoneSection.offset);
+				AssetLoader.AssetPointer[] zonePtrs = FileUtils.ReadStructureArray<AssetLoader.AssetPointer>(assetlookup.sh, zoneSection.length / 0x10);
+				zones = new Zone[zonePtrs.Length];
+				Stream zoneStream = al.fm.rawfiles["zones.dat"];
+				for(int i = 0; i < zonePtrs.Length; i++)
+				{
+					byte[] zonedat = new byte[zonePtrs[i].length];
+					zoneStream.Seek(zonePtrs[i].offset, SeekOrigin.Begin);
+					zoneStream.Read(zonedat, 0x00, (int)zonePtrs[i].length);
+					MemoryStream zonems = new MemoryStream(zonedat);
+					IGFile igzone = new IGFile(zonems);
+					Console.WriteLine($"zone {i}");
+					zones[i] = new Zone(igzone, al);
+				}
 			}
 		}
 	}
@@ -46,14 +67,16 @@ namespace LibLunacy
 	public class Zone
 	{
 		[FileStructure(0x80)]
-		public struct OldTieInstance
+		public struct TieInstance
 		{
 			[FileOffset(0x00)] public Matrix4x4 transformation;
-			[FileOffset(0x50)] public uint tie;					//Offset but used as a key into the assetloader ties dictionary
+			[FileOffset(0x40)] public Vector3 boundingPosition;
+			[FileOffset(0x4C)] public float boundingRadius;
+			[FileOffset(0x50)] public uint tie;					//Offset but used as a key into the assetloader ties dictionary on old engine, otherwise index into tuid array
 		}
-		
 
-		public string name = string.Empty;
+
+		public int index = 0;
 		public Dictionary<ulong, CTieInstance> tieInstances = new Dictionary<ulong, CTieInstance>();
 
 		public class CTieInstance
@@ -62,24 +85,57 @@ namespace LibLunacy
 			public Matrix4x4 transformation;
 			public CTie tie;
 
-			public CTieInstance(OldTieInstance omi, AssetLoader al)
+			public CTieInstance(TieInstance instance, AssetLoader al, IGFile file)
 			{
-				transformation = omi.transformation;
-				tie = al.ties[omi.tie];
+				transformation = instance.transformation;
+				if(al.fm.isOld)
+				{
+					tie = al.ties[instance.tie];
+				}
+				else
+				{
+					file.sh.Seek(file.QuerySection(0x7200).offset + 0x08 * instance.tie);
+
+					tie = al.ties[file.sh.ReadUInt64()];
+				}
 			}
 		}
 
 		public Zone(IGFile file, AssetLoader al)
 		{
-			IGFile.SectionHeader tieInstSections = file.QuerySection(0x9240);
-			file.sh.Seek(tieInstSections.offset);
-			OldTieInstance[] ties = FileUtils.ReadStructureArray<OldTieInstance>(file.sh, tieInstSections.count);
+			IGFile.SectionHeader tieInstSection;
+			AssetLoader.AssetPointer[] names = null;
+
+			if(al.fm.isOld)
+			{
+				tieInstSection = file.QuerySection(0x9240);
+			}
+			else
+			{
+				IGFile.SectionHeader tieNameSection = file.QuerySection(0x72C0);
+				file.sh.Seek(tieNameSection.offset);
+				Console.WriteLine($"names @ {tieNameSection.offset}");
+				names = FileUtils.ReadStructureArray<AssetLoader.AssetPointer>(file.sh, tieNameSection.count);
+				
+				tieInstSection = file.QuerySection(0x7240);
+			}
+
+			file.sh.Seek(tieInstSection.offset);
+			TieInstance[] ties = FileUtils.ReadStructureArray<TieInstance>(file.sh, tieInstSection.count);
 
 			for(int i = 0; i < ties.Length; i++)
 			{
-				tieInstances.Add((ulong)i, new CTieInstance(ties[i], al));
-				tieInstances.Last().Value.name = $"Tie_{i}";
+				tieInstances.Add((ulong)i, new CTieInstance(ties[i], al, file));
+				if(al.fm.isOld)
+				{
+					tieInstances.Last().Value.name = $"Tie_{i}";
+				}
+				else
+				{
+					tieInstances.Last().Value.name = file.sh.ReadString(names[i].offset);
+				}
 			}
+
 		}
 	}
 
@@ -109,7 +165,7 @@ namespace LibLunacy
 				position = nmi.position;
 				rotation = nmi.rotation;
 				scale = nmi.scale;
-				
+
 				region.sh.Seek(region.QuerySection(0x1C600).offset + 0x08 * nmi.mobyIndex);
 
 				moby = al.mobys[region.sh.ReadUInt64()];
@@ -153,7 +209,7 @@ namespace LibLunacy
 			for(int i = 0; i < mobys.Length; i++)
 			{
 				mobyInstances.Add((ulong)i, new CMobyInstance(mobys[i], al));
-				mobyInstances.Last().Value.name = $"Moby_{i}";
+				mobyInstances.Last().Value.name = $"Moby_{mobys[i].mobyIndex.ToString("X04")}_Instance_{i}";
 			}
 		}
 		public Region(AssetLoader al, string regionName)

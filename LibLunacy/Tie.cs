@@ -11,7 +11,8 @@ namespace LibLunacy
 			[FileOffset(0x04)] public ushort vertexIndex;
 			[FileOffset(0x08)] public ushort vertexCount;
 			[FileOffset(0x12)] public ushort indexCount;
-			[FileOffset(0x28)] public ushort shaderIndex;
+			[FileOffset(0x28)] public ushort oldShaderIndex;
+			[FileOffset(0x2A)] public byte newShaderIndex;
 
 			public float[] vPositions;
 			public float[] vTexCoords;
@@ -126,15 +127,13 @@ namespace LibLunacy
 			}
 			for(int i = 0; i < meshes.Length; i++)
 			{
-				uint shaderIndex = meshes[i].shaderIndex;
-
 				if(al.fm.isOld)
 				{
-					meshes[i].shader = al.shaders[shaderIndex];
+					meshes[i].shader = al.shaders[meshes[i].oldShaderIndex];
 				}
 				else
 				{
-					file.sh.Seek(shaderSection.offset + shaderIndex * 8);
+					file.sh.Seek(shaderSection.offset + meshes[i].newShaderIndex * 8);
 					meshes[i].shader = al.shaders[file.sh.ReadUInt64()];
 				}
 			}
@@ -158,7 +157,7 @@ namespace LibLunacy
 					//obj.Append($"vn {meshes[i].vNormals[k * 3].ToString("F8")} {meshes[i].vNormals[k * 3 + 1].ToString("F8")} {meshes[i].vNormals[k * 3 + 2].ToString("F8")}\n");
 				}
 
-				obj.Append($"usemtl Shader_{meshes[i].shaderIndex}\n");
+				obj.Append($"usemtl Shader_{meshes[i].oldShaderIndex}\n");
 
 				for(int k = 0; k < meshes[i].indexCount; k += 3)
 				{

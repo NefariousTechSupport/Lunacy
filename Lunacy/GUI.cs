@@ -31,13 +31,30 @@ namespace Lunacy
 					{
 						if(ImGui.Button(mobys.Value[i].name))
 						{
-							//Camera.transform.Position = -mobys.Value[i].transform.Position;
+							Camera.transform.Position = -mobys.Value[i].transform.Position;
 							selectedEntity = mobys.Value[i];
 						}
 					}
 				}
 			}
 			ImGui.End();
+
+			ImGui.Begin("Zones", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
+			for(int j = 0; j < EntityManager.Singleton.TieInstances.Count; j++)
+			{
+				if(ImGui.CollapsingHeader($"Zone {j}"))
+				{
+					for(int i = 0; i < EntityManager.Singleton.TieInstances[j].Count; i++)
+					{
+						if(ImGui.Button(EntityManager.Singleton.TieInstances[j][i].name))
+						{
+							Camera.transform.Position = -EntityManager.Singleton.TieInstances[j][i].transform.Position;
+							selectedEntity = EntityManager.Singleton.TieInstances[j][i];
+						}
+					}
+				}
+			}
+
 
 			if(selectedEntity != null)
 			{

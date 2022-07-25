@@ -36,7 +36,7 @@ namespace Lunacy
 			GL.Enable(EnableCap.DepthTest);
 			GL.Enable(EnableCap.Texture2D);
 			//GL.Enable(EnableCap.StencilTest);
-			GL.Enable(EnableCap.CullFace);
+			//GL.Enable(EnableCap.CullFace);
 			//GL.Enable(EnableCap.Blend);
 			//GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One, BlendingFactorDest.Zero);
 

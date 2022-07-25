@@ -73,7 +73,7 @@ namespace Lunacy
 		public object instance;					//Is either a Region.CMobyInstance or a TieInstance depending on if it's a moby or tie repsectively
 		public object drawable;					//Is either a DrawableListList or a DrawableList depending on if it's a moby or tie respectively
 		public int id;
-		public string name;
+		public string name = string.Empty;
 
 		public Transform transform;
 
@@ -94,6 +94,7 @@ namespace Lunacy
 			instance = tieInstance;
 			drawable = AssetManager.Singleton.ties[tieInstance.tie.id];
 			transform = new Transform(Utils.ToOpenTKMatrix4(tieInstance.transformation));
+			name = tieInstance.name;
 			(drawable as DrawableList).AddDrawCall(transform);
 		}
 
