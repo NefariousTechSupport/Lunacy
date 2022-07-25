@@ -23,7 +23,7 @@ namespace LibLunacy
 		public struct Tie
 		{
 			[FileOffset(0x00), Reference("MetadataCount")] public TieMesh[] meshes;
-			[FileOffset(0x0C)] public uint metadataCount;	//Note: this could be a ushort starting from 0x0E
+			[FileOffset(0x0F)] public byte metadataCount;
 			[FileOffset(0x14)] public uint vertexBufferStart;
 			[FileOffset(0x18)] public uint vertexBufferSize;
 			[FileOffset(0x20)] public Vector3 scale;

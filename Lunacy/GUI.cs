@@ -29,11 +29,13 @@ namespace Lunacy
 				{
 					for(int i = 0; i < mobys.Value.Count; i++)
 					{
+						ImGui.PushID($"{mobys.Key}:{i}:{mobys.Value[i].name}");
 						if(ImGui.Button(mobys.Value[i].name))
 						{
 							Camera.transform.Position = -mobys.Value[i].transform.Position;
 							selectedEntity = mobys.Value[i];
 						}
+						ImGui.PopID();
 					}
 				}
 			}
@@ -46,11 +48,13 @@ namespace Lunacy
 				{
 					for(int i = 0; i < EntityManager.Singleton.TieInstances[j].Count; i++)
 					{
+						ImGui.PushID($"{j}:{i}:{EntityManager.Singleton.TieInstances[j][i].name}");
 						if(ImGui.Button(EntityManager.Singleton.TieInstances[j][i].name))
 						{
 							Camera.transform.Position = -EntityManager.Singleton.TieInstances[j][i].transform.Position;
 							selectedEntity = EntityManager.Singleton.TieInstances[j][i];
 						}
+						ImGui.PopID();
 					}
 				}
 			}
