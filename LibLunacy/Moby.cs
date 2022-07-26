@@ -53,7 +53,7 @@ namespace LibLunacy
 		public struct NewMoby
 		{
 			[FileOffset(0x00)] public Vector3 boundingSpherePosition;
-			[FileOffset(0x0C)] public float boundingSphereRotation;
+			[FileOffset(0x0C)] public float boundingSphereRadius;
 			[FileOffset(0x18)] public ushort bangleCount1;
 			[FileOffset(0x1A)] public ushort bangleCount2;
 			[FileOffset(0x24), Reference("BangleCount")] public Bangle[] bangles;
@@ -68,6 +68,9 @@ namespace LibLunacy
 		public float scale;
 		public IGFile file;
 		public ulong id;		//Either tuid or index depending on game
+		public Vector3 boundingSpherePosition;
+		public float boundingSphereRadius;
+
 
 		public uint MetadataCount
 		{
@@ -99,6 +102,8 @@ namespace LibLunacy
 				IGFile.SectionHeader namesection = file.QuerySection(0xD200);
 				name = file.sh.ReadString(namesection.offset);
 				scale = nmoby.scale;
+				boundingSpherePosition = nmoby.boundingSpherePosition;
+				boundingSphereRadius = nmoby.boundingSphereRadius;
 
 				IGFile.SectionHeader vertexsection = file.QuerySection(0xE200);
 				//SubStream vertexms = new SubStream(file.sh.BaseStream, vertexsection.offset, vertexsection.length);
@@ -122,6 +127,8 @@ namespace LibLunacy
 				bangles = omoby.bangles;
 				name = $"Moby_{index.ToString("X04")}";
 				scale = omoby.scale;
+				boundingSpherePosition = omoby.boundingSpherePosition;
+				boundingSphereRadius = omoby.boundingSphereRotation;
 
 				IGFile vertexFile = al.fm.igfiles["vertices.dat"];
 

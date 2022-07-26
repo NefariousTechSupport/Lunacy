@@ -39,6 +39,7 @@ namespace Lunacy
 
 		public void SetBool(string name, bool data) => SetInt(name, data ? 1 : 0);
 
+		public void SetFloat(string name, float data) => GL.Uniform1(GetUniformLocation(name), data);
 		public void SetInt(string name, int data) => GL.Uniform1(GetUniformLocation(name), data);
 
 		private int GetUniformLocation(string name)

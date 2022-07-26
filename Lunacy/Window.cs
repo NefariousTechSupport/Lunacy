@@ -12,6 +12,8 @@ namespace Lunacy
 
 		public Vector2 freecamLocal;
 
+		public static bool showpicker = false;
+
 		public Window(GameWindowSettings gws, NativeWindowSettings nws, string folderPath) : base(gws, nws)
 		{
 			LoadFolder(folderPath);
@@ -31,8 +33,7 @@ namespace Lunacy
 		protected override void OnLoad()
 		{
 			base.OnLoad();
-
-			GL.ClearColor(0.1f, 0.1f, 0.1f, 0);
+			
 			GL.Enable(EnableCap.DepthTest);
 			GL.Enable(EnableCap.Texture2D);
 			//GL.Enable(EnableCap.StencilTest);
@@ -40,11 +41,16 @@ namespace Lunacy
 			//GL.Enable(EnableCap.Blend);
 			//GL.BlendFuncSeparate(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha, BlendingFactorSrc.One, BlendingFactorDest.Zero);
 
-			int programHandle = MaterialManager.LoadMaterial("stdv;ulitf", "shaders/stdv.glsl", "shaders/ulitf.glsl");
+			MaterialManager.LoadMaterial("stdv;ulitf", "shaders/stdv.glsl", "shaders/ulitf.glsl");
+			MaterialManager.LoadMaterial("stdv;whitef", "shaders/stdvsingle.glsl", "shaders/whitef.glsl");
+			MaterialManager.LoadMaterial("stdv;pickingf", "shaders/stdv.glsl", "shaders/pickingf.glsl");
+			Drawable.InitPicking();
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
 			gui = new GUI(this);
+
+			if(showpicker) GUI.InitializeFramebuffer();
 
 			AssetManager.Singleton.Initialize(al);
 
@@ -58,6 +64,10 @@ namespace Lunacy
 			base.OnRenderFrame(args);
 
 			//GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+			// /GL.BindFramebuffer(FramebufferTarget.Framebuffer, GUI.framebuffer);
+			// /GL.ClearColor(0.0f, 0.0f, 0.0f, 0);
+			// /GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			GL.ClearColor(0.1f, 0.1f, 0.1f, 0);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
 			gui.FrameBegin(args.Time);
@@ -70,6 +80,23 @@ namespace Lunacy
 			EntityManager.Singleton.Render();
 
 			gui.ShowRegionsWindow();
+
+
+			if(showpicker)
+			{
+				GL.Flush();
+				GL.Finish();
+
+				GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+				ushort[] data = new ushort[3];
+				GL.ReadPixels((int)MouseState.X, (int)MouseState.Y, 1, 1, PixelFormat.Rgb, PixelType.UnsignedShort, data);
+
+				int mobyId = (int)Math.Round((data[0] / (float)0xFFFF) * AssetManager.Singleton.mobys.Count);
+				int instanceId = (int)Math.Round(AssetManager.Singleton.mobys.ElementAt(mobyId).Value[0][0].transforms.Count * (data[1] / (float)0xFFFF));
+				ImGuiNET.ImGui.SetTooltip($"Moby_{mobyId.ToString("X04")}_Instance_{instanceId}");
+			}
+			
+			gui.Tick();
 
 			gui.FrameEnd();
 

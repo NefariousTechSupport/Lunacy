@@ -5,7 +5,7 @@ namespace Lunacy
 	//One example of such is blending, only some moby meshes have this and it would be a waste of memory to store this for ties, zone meshes, and shrubs.
 	public class Drawable
 	{
-		private List<Transform> transforms = new List<Transform>();
+		public List<Transform> transforms = new List<Transform>();
 		int VwBO;
 		int VpBO;
 		int VtcBO;
@@ -13,6 +13,7 @@ namespace Lunacy
 		int EBO;
 		int indexCount;
 		Material material;
+		static Material pickingMaterial;
 
 		public Drawable(){}
 		public Drawable(ref CMoby.MobyMesh mesh)
@@ -32,6 +33,19 @@ namespace Lunacy
 			SetIndices(mesh.indices);
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
+		}
+		public Drawable(ref Zone.NewTFrag mesh)
+		{
+			Prepare();
+			SetVertexPositions(mesh.vPositions);
+			SetIndices(mesh.indices);
+			//Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
+			SetMaterial(new Material(MaterialManager.materials["stdv;whitef"], null));
+		}
+
+		public static void InitPicking()
+		{
+			pickingMaterial = new Material(MaterialManager.materials["stdv;pickingf"]);
 		}
 
 		public void Prepare()
@@ -103,10 +117,20 @@ namespace Lunacy
 			}
 		}
 
-		public void Draw()
+		public void Draw(float dId = 0)
 		{
-			material.Use();
-			material.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
+			if(!Window.showpicker)
+			{
+				material.Use();
+				material.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
+			}
+			else
+			{
+				pickingMaterial.Use();
+				pickingMaterial.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
+				pickingMaterial.SetFloat("picking", dId);
+				pickingMaterial.SetFloat("maxInst", transforms.Count);
+			}
 
 			GL.BindVertexArray(VAO);
 			GL.DrawElementsInstanced(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, transforms.Count);
@@ -172,11 +196,11 @@ namespace Lunacy
 			}
 		}
 
-		public void Draw()
+		public void Draw(float dId = 0)
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw();
+				this[i].Draw(dId);
 			}
 		}
 
@@ -222,11 +246,11 @@ namespace Lunacy
 				this[i].ConsolidateDrawCalls();
 			}
 		}
-		public void Draw()
+		public void Draw(float dId = 0)
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw();
+				this[i].Draw(dId);
 			}
 		}
 		public void Draw(Transform transform)

@@ -75,16 +75,32 @@ namespace LibLunacy
 			[FileOffset(0x50)] public uint tie;					//Offset but used as a key into the assetloader ties dictionary on old engine, otherwise index into tuid array
 		}
 
+		[FileStructure(0x80)]
+		public struct NewTFrag
+		{
+			[FileOffset(0x00)] public Matrix4x4 transformation;
+			[FileOffset(0x40)] public uint indexOffset;
+			[FileOffset(0x44)] public uint vertexOffset;
+			[FileOffset(0x48)] public ushort indexCount;
+			[FileOffset(0x4A)] public ushort vertexCount;
+
+			public float[] vPositions;
+			public uint[] indices;
+		}
+
 
 		public int index = 0;
 		public Dictionary<ulong, CTieInstance> tieInstances = new Dictionary<ulong, CTieInstance>();
+		public NewTFrag[] tfrags;
+
 
 		public class CTieInstance
 		{
 			public string name = string.Empty;
 			public Matrix4x4 transformation;
 			public CTie tie;
-
+			public Vector3 boundingPosition;
+			public float boundingRadius;
 			public CTieInstance(TieInstance instance, AssetLoader al, IGFile file)
 			{
 				transformation = instance.transformation;
@@ -98,6 +114,8 @@ namespace LibLunacy
 
 					tie = al.ties[file.sh.ReadUInt64()];
 				}
+				boundingPosition = instance.boundingPosition;
+				boundingRadius = instance.boundingRadius;
 			}
 		}
 
@@ -136,6 +154,36 @@ namespace LibLunacy
 				}
 			}
 
+			tfrags = new NewTFrag[0];
+			//LoadTFrags(file);
+		}
+
+		private void LoadTFrags(IGFile file)
+		{
+			IGFile.SectionHeader tfragSection = file.QuerySection(0x6200);
+			IGFile.SectionHeader vertexSection = file.QuerySection(0x6000);
+			IGFile.SectionHeader indexSection = file.QuerySection(0x6100);
+			file.sh.Seek(tfragSection.offset);
+			tfrags = FileUtils.ReadStructureArray<NewTFrag>(file.sh, tfragSection.count);
+			for(int i = 0; i < tfrags.Length; i++)
+			{
+				tfrags[i].vPositions = new float[tfrags[i].vertexCount * 3];
+				tfrags[i].indices = new uint[tfrags[i].indexCount];
+
+				for(int j = 0; j < tfrags[i].vertexCount; j++)
+				{
+					file.sh.Seek(vertexSection.offset + tfrags[i].vertexOffset + 0x18 * j);
+					tfrags[i].vPositions[j * 3 + 0] = (file.sh.ReadInt16() / (float)0x7FFF);
+					tfrags[i].vPositions[j * 3 + 1] = (file.sh.ReadInt16() / (float)0x7FFF);
+					tfrags[i].vPositions[j * 3 + 2] = (file.sh.ReadInt16() / (float)0x7FFF);
+				}
+
+				file.sh.Seek(indexSection.offset + tfrags[i].indexOffset);
+				for(int j = 0; j < tfrags[i].indexCount; j++)
+				{
+					tfrags[i].indices[j] = file.sh.ReadUInt16();
+				}
+			}
 		}
 	}
 

@@ -8,6 +8,7 @@ namespace Lunacy
 
 		public Dictionary<string, List<Entity>> MobyHandles = new Dictionary<string, List<Entity>>();
 		public List<List<Entity>> TieInstances = new List<List<Entity>>();
+		public List<List<Entity>> TFrags = new List<List<Entity>>();
 
 		List<Entity> mobys = new List<Entity>();
 
@@ -33,6 +34,11 @@ namespace Lunacy
 				{
 					TieInstances[i].Add(new Entity(ties[j].Value));
 				}
+				TFrags.Add(new List<Entity>());
+				for(uint j = 0; j < gp.zones[i].tfrags.Length; j++)
+				{
+					TFrags[i].Add(new Entity(gp.zones[i].tfrags[j]));
+				}
 			}
 
 			AssetManager.Singleton.ConsolidateTies();
@@ -57,13 +63,23 @@ namespace Lunacy
 			{
 				mobys[i].Draw();
 			}*/
-			foreach(KeyValuePair<ulong, DrawableListList> moby in AssetManager.Singleton.mobys)
+			KeyValuePair<ulong, DrawableListList>[] mobys = AssetManager.Singleton.mobys.ToArray();
+			for(int i = 0; i < mobys.Length; i++)
 			{
-				moby.Value.Draw();
+				mobys[i].Value.Draw(i / (float)mobys.Length);
+
 			}
-			foreach(KeyValuePair<ulong, DrawableList> tie in AssetManager.Singleton.ties)
+			KeyValuePair<ulong, DrawableList>[] ties = AssetManager.Singleton.ties.ToArray();
+			for(int i = 0; i < ties.Length; i++)
 			{
-				tie.Value.Draw();
+				ties[i].Value.Draw(i / (float)ties.Length);
+			}
+			foreach(List<Entity> tfrag in TFrags)
+			{
+				for(int i = 0; i < tfrag.Count; i++)
+				{
+					tfrag[i].Draw();
+				}
 			}
 		}
 	}
@@ -77,6 +93,8 @@ namespace Lunacy
 
 		public Transform transform;
 
+		public Vector4 boundingSphere;
+
 		public Entity(Region.CMobyInstance mobyInstance)
 		{
 			instance = mobyInstance;
@@ -88,6 +106,7 @@ namespace Lunacy
 					);
 			name = mobyInstance.name;
 			(drawable as DrawableListList).AddDrawCall(transform);
+			boundingSphere = new Vector4(Utils.ToOpenTKVector3(mobyInstance.moby.boundingSpherePosition) + transform.Position, mobyInstance.moby.boundingSphereRadius * mobyInstance.scale);
 		}
 		public Entity(Zone.CTieInstance tieInstance)
 		{
@@ -96,6 +115,14 @@ namespace Lunacy
 			transform = new Transform(Utils.ToOpenTKMatrix4(tieInstance.transformation));
 			name = tieInstance.name;
 			(drawable as DrawableList).AddDrawCall(transform);
+			boundingSphere = new Vector4(Utils.ToOpenTKVector3(tieInstance.boundingPosition), tieInstance.boundingRadius);
+		}
+		public Entity(Zone.NewTFrag tfrag)
+		{
+			instance = tfrag;
+			drawable = new Drawable(ref tfrag);
+			name = "hi";
+			transform = new Transform(Utils.ToOpenTKMatrix4(tfrag.transformation));
 		}
 
 		public void SetPosition(Vector3 position)
@@ -108,6 +135,19 @@ namespace Lunacy
 		{
 			if(drawable is DrawableListList dll) dll.Draw();
 			else if(drawable is DrawableList dl) dl.Draw();
+			else if(drawable is Drawable d) d.Draw(transform);
+		}
+		public bool IntersectsRay(Vector3 dir, Vector3 position)
+		{
+			Vector3 m = position - boundingSphere.Xyz;
+			float b = Vector3.Dot(m, dir);
+			float c = Vector3.Dot(m, m) - boundingSphere.W * boundingSphere.W;
+
+			if(c > 0 && b > 0) return false;
+
+			float discriminant = b*b - c;
+
+			return discriminant >= 0;
 		}
 	}
 }
