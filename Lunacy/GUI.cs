@@ -11,6 +11,7 @@ namespace Lunacy
 
 		public static int framebuffer;
 		private static int framebufferTexture;
+		bool raycast = false;
 
 		public GUI(Window wnd)
 		{
@@ -91,41 +92,46 @@ namespace Lunacy
 
 		public void Tick()
 		{
-			Vector2 mouse = wnd.MouseState.Position;
-			Vector3 viewport = new Vector3(
-				(2 * mouse.X) / wnd.ClientSize.X - 1,
-				1 - (2 * mouse.Y) / wnd.ClientSize.Y,
-				1
-			);
-			Vector4 homogeneousClip = new Vector4(viewport.X, viewport.Y, -1, 1);
-			Vector4 eye = Matrix4.Invert(Matrix4.Transpose(Camera.ViewToClip)) * homogeneousClip;
-			eye.Z = -1;
-			eye.W = 0;
-			Vector3 world = (Matrix4.Invert(Matrix4.Transpose(Camera.WorldToView)) * eye).Xyz;
-			world.Normalize();
-			string entityNames = string.Empty;
-			for(int i = 0; i < EntityManager.Singleton.MobyHandles.Count; i++)
+			if(wnd.KeyboardState.IsKeyPressed(Keys.P)) raycast = !raycast;
+
+			if(raycast)
 			{
-				for(int j = 0; j < EntityManager.Singleton.MobyHandles.ElementAt(i).Value.Count; j++)
+
+				Vector2 mouse = wnd.MouseState.Position;
+				Vector3 viewport = new Vector3(
+					(2 * mouse.X) / wnd.ClientSize.X - 1,
+					1 - (2 * mouse.Y) / wnd.ClientSize.Y,
+					1
+				);
+				Vector4 homogeneousClip = new Vector4(viewport.X, viewport.Y, -1, 1);
+				Vector4 eye = Matrix4.Invert(Matrix4.Transpose(Camera.ViewToClip)) * homogeneousClip;
+				eye.Z = -1;
+				eye.W = 0;
+				Vector3 world = (Matrix4.Invert(Matrix4.Transpose(Camera.WorldToView)) * eye).Xyz;
+				world.Normalize();
+				string entityNames = string.Empty;
+				for(int i = 0; i < EntityManager.Singleton.MobyHandles.Count; i++)
 				{
-					if(EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].IntersectsRay(world, -Camera.transform.Position))
+					for(int j = 0; j < EntityManager.Singleton.MobyHandles.ElementAt(i).Value.Count; j++)
 					{
-						entityNames += $"{EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].name}\n";
+						if(EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].IntersectsRay(world, -Camera.transform.Position))
+						{
+							entityNames += $"{EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].name}\n";
+						}
 					}
 				}
-			}
-			for(int i = 0; i < EntityManager.Singleton.TieInstances.Count; i++)
-			{
-				for(int j = 0; j < EntityManager.Singleton.TieInstances[i].Count; j++)
+				for(int i = 0; i < EntityManager.Singleton.TieInstances.Count; i++)
 				{
-					if(EntityManager.Singleton.TieInstances[i][j].IntersectsRay(world, -Camera.transform.Position))
+					for(int j = 0; j < EntityManager.Singleton.TieInstances[i].Count; j++)
 					{
-						entityNames += $"{EntityManager.Singleton.TieInstances[i][j].name}\n";
+						if(EntityManager.Singleton.TieInstances[i][j].IntersectsRay(world, -Camera.transform.Position))
+						{
+							entityNames += $"{EntityManager.Singleton.TieInstances[i][j].name}\n";
+						}
 					}
 				}
-			}
-			ImGui.SetTooltip(entityNames);
-			
+				ImGui.SetTooltip(entityNames);
+			}			
 		}
 
 		private void ShowEntityInfo()

@@ -14,9 +14,6 @@ namespace LibLunacy
 			[FileOffset(0x28)] public ushort oldShaderIndex;
 			[FileOffset(0x2A)] public byte newShaderIndex;
 
-			public float[] vPositions;
-			public float[] vTexCoords;
-			public uint[] indices;
 			public CShader shader;
 		}
 		[FileStructure(0x80)]
@@ -39,6 +36,11 @@ namespace LibLunacy
 		public ulong id;		//Either tuid or index depending on game
 		private Vector3 scale;
 
+		IGFile geometryFile;
+		StreamHelper vertexStream;
+		IGFile.SectionHeader vertexSection;
+		IGFile.SectionHeader indexSection;
+
 		public CTie(IGFile file, AssetLoader al, uint index = 0)
 		{
 			this.file = file;
@@ -55,64 +57,45 @@ namespace LibLunacy
 			{
 				name = $"Tie_{index.ToString("X04")}";
 				id = section.offset + index * 0x80;
-			}
-			else
-			{
-		    	name = tie.name;
-				id = tie.tuid;
-			}
-
-			InitializeBuffers(al, ref tie);
-			LoadDependancies(al);
-		}
-
-		private void InitializeBuffers(AssetLoader al, ref Tie tie)
-		{
-			IGFile.SectionHeader vertexSection;
-			IGFile.SectionHeader indexSection;
-
-			IGFile geometryFile;
-			StreamHelper vertexStream;
-
-			if(al.fm.isOld)
-			{
 				geometryFile = al.fm.igfiles["vertices.dat"];
 				vertexSection = geometryFile.QuerySection(0x9000);
 				indexSection = geometryFile.QuerySection(0x9100);
 			}
 			else
 			{
+		    	name = tie.name;
+				id = tie.tuid;
 				geometryFile = file;
 				vertexSection = file.QuerySection(0x3000);
 				indexSection = file.QuerySection(0x3200);
 			}
-
 			geometryFile.sh.Seek(vertexSection.offset + tie.vertexBufferStart);
 			vertexStream = new StreamHelper(new MemoryStream(geometryFile.sh.ReadBytes(tie.vertexBufferSize)), file.sh._endianness);
-
-			for(int i = 0; i < meshes.Length; i++)
+			LoadDependancies(al);
+		}
+		public void GetBuffers(TieMesh mesh, out uint[] indices, out float[] vPositions, out float[] vTexCoords)
+		{
+			indices = new uint[mesh.indexCount];
+			geometryFile.sh.Seek(indexSection.offset + mesh.indexIndex * 2);
+			for(int j = 0; j < mesh.indexCount; j++)
 			{
-				meshes[i].indices = new uint[meshes[i].indexCount];
-				geometryFile.sh.Seek(indexSection.offset + meshes[i].indexIndex * 2);
-				for(int j = 0; j < meshes[i].indexCount; j++)
-				{
-					meshes[i].indices[j] = geometryFile.sh.ReadUInt16();
-				}
-
-				meshes[i].vPositions = new float[meshes[i].vertexCount * 3];
-				meshes[i].vTexCoords = new float[meshes[i].vertexCount * 2];
-				for(int j = 0; j < meshes[i].vertexCount; j++)
-				{
-					vertexStream.Seek((meshes[i].vertexIndex + j) * 0x14 + 0x00);
-					meshes[i].vPositions[j * 3 + 0] = vertexStream.ReadInt16() * scale.X;
-					meshes[i].vPositions[j * 3 + 1] = vertexStream.ReadInt16() * scale.Y;
-					meshes[i].vPositions[j * 3 + 2] = vertexStream.ReadInt16() * scale.Z;
-
-					vertexStream.Seek((meshes[i].vertexIndex + j) * 0x14 + 0x08);
-					meshes[i].vTexCoords[j * 2 + 0] = (float)vertexStream.ReadHalf();
-					meshes[i].vTexCoords[j * 2 + 1] = (float)vertexStream.ReadHalf();
-				}
+				indices[j] = geometryFile.sh.ReadUInt16();
 			}
+
+			vPositions = new float[mesh.vertexCount * 3];
+			vTexCoords = new float[mesh.vertexCount * 2];
+			for(int j = 0; j < mesh.vertexCount; j++)
+			{
+				vertexStream.Seek((mesh.vertexIndex + j) * 0x14 + 0x00);
+				vPositions[j * 3 + 0] = vertexStream.ReadInt16() * scale.X;
+				vPositions[j * 3 + 1] = vertexStream.ReadInt16() * scale.Y;
+				vPositions[j * 3 + 2] = vertexStream.ReadInt16() * scale.Z;
+
+				vertexStream.Seek((mesh.vertexIndex + j) * 0x14 + 0x08);
+				vTexCoords[j * 2 + 0] = (float)vertexStream.ReadHalf();
+				vTexCoords[j * 2 + 1] = (float)vertexStream.ReadHalf();
+			}
+
 		}
 		private void LoadDependancies(AssetLoader al)
 		{
@@ -150,20 +133,22 @@ namespace LibLunacy
 				obj.Append($"o Mesh_{i}\n");
 				Console.WriteLine($"Submesh {i+1}/{meshes.Length}");
 
+				GetBuffers(meshes[i], out uint[] indices, out float[] vPositions, out float[] vTexCoords);
+
 				for(int k = 0; k < meshes[i].vertexCount; k++)
 				{
-					obj.Append($"v {meshes[i].vPositions[k * 3].ToString("F8")} {meshes[i].vPositions[k * 3 + 1].ToString("F8")} {meshes[i].vPositions[k * 3 + 2].ToString("F8")}\n");
-					obj.Append($"vt {meshes[i].vTexCoords[k * 2].ToString("F8")} {meshes[i].vTexCoords[k * 2 + 1].ToString("F8")}\n");
-					//obj.Append($"vn {meshes[i].vNormals[k * 3].ToString("F8")} {meshes[i].vNormals[k * 3 + 1].ToString("F8")} {meshes[i].vNormals[k * 3 + 2].ToString("F8")}\n");
+					obj.Append($"v {vPositions[k * 3].ToString("F8")} {vPositions[k * 3 + 1].ToString("F8")} {vPositions[k * 3 + 2].ToString("F8")}\n");
+					obj.Append($"vt {vTexCoords[k * 2].ToString("F8")} {vTexCoords[k * 2 + 1].ToString("F8")}\n");
+					//obj.Append($"vn {vNormals[k * 3].ToString("F8")} {vNormals[k * 3 + 1].ToString("F8")} {vNormals[k * 3 + 2].ToString("F8")}\n");
 				}
 
 				obj.Append($"usemtl Shader_{meshes[i].oldShaderIndex}\n");
 
 				for(int k = 0; k < meshes[i].indexCount; k += 3)
 				{
-					string i1 = (meshes[i].indices[k + 0] + maxIndex + 1).ToString();
-					string i2 = (meshes[i].indices[k + 1] + maxIndex + 1).ToString();
-					string i3 = (meshes[i].indices[k + 2] + maxIndex + 1).ToString();
+					string i1 = (indices[k + 0] + maxIndex + 1).ToString();
+					string i2 = (indices[k + 1] + maxIndex + 1).ToString();
+					string i3 = (indices[k + 2] + maxIndex + 1).ToString();
 					//obj.Append($"f {i1}/{i1}/{i1} {i2}/{i2}/{i2} {i3}/{i3}/{i3}\n");
 					obj.Append($"f {i1}/{i1} {i2}/{i2} {i3}/{i3}\n");
 				}

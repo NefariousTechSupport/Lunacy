@@ -12,8 +12,6 @@ namespace Lunacy
 
 		public Vector2 freecamLocal;
 
-		public static bool showpicker = false;
-
 		public Window(GameWindowSettings gws, NativeWindowSettings nws, string folderPath) : base(gws, nws)
 		{
 			LoadFolder(folderPath);
@@ -44,13 +42,10 @@ namespace Lunacy
 			MaterialManager.LoadMaterial("stdv;ulitf", "shaders/stdv.glsl", "shaders/ulitf.glsl");
 			MaterialManager.LoadMaterial("stdv;whitef", "shaders/stdvsingle.glsl", "shaders/whitef.glsl");
 			MaterialManager.LoadMaterial("stdv;pickingf", "shaders/stdv.glsl", "shaders/pickingf.glsl");
-			Drawable.InitPicking();
 
 			Camera.CreatePerspective(MathHelper.PiOver2);
 
 			gui = new GUI(this);
-
-			if(showpicker) GUI.InitializeFramebuffer();
 
 			AssetManager.Singleton.Initialize(al);
 
@@ -63,39 +58,15 @@ namespace Lunacy
 		{
 			base.OnRenderFrame(args);
 
-			//GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-			// /GL.BindFramebuffer(FramebufferTarget.Framebuffer, GUI.framebuffer);
-			// /GL.ClearColor(0.0f, 0.0f, 0.0f, 0);
-			// /GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			GL.ClearColor(0.1f, 0.1f, 0.1f, 0);
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
 			gui.FrameBegin(args.Time);
 
-			/*foreach(KeyValuePair<ulong, DrawableListList> moby in AssetManager.Singleton.mobys)
-			{
-				moby.Value.Draw();
-			}*/
-
 			EntityManager.Singleton.Render();
 
 			gui.ShowRegionsWindow();
 
-
-			if(showpicker)
-			{
-				GL.Flush();
-				GL.Finish();
-
-				GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
-				ushort[] data = new ushort[3];
-				GL.ReadPixels((int)MouseState.X, (int)MouseState.Y, 1, 1, PixelFormat.Rgb, PixelType.UnsignedShort, data);
-
-				int mobyId = (int)Math.Round((data[0] / (float)0xFFFF) * AssetManager.Singleton.mobys.Count);
-				int instanceId = (int)Math.Round(AssetManager.Singleton.mobys.ElementAt(mobyId).Value[0][0].transforms.Count * (data[1] / (float)0xFFFF));
-				ImGuiNET.ImGui.SetTooltip($"Moby_{mobyId.ToString("X04")}_Instance_{instanceId}");
-			}
-			
 			gui.Tick();
 
 			gui.FrameEnd();
@@ -117,11 +88,21 @@ namespace Lunacy
 			if(KeyboardState.IsKeyDown(Keys.S)) Camera.transform.Position -= Camera.transform.Forward * (float)args.Time * moveSpeed;
 			if(KeyboardState.IsKeyDown(Keys.D)) Camera.transform.Position -= Camera.transform.Right * (float)args.Time * moveSpeed;
 
-			freecamLocal += MouseState.Delta.Yx * sensitivity;
+			CursorGrabbed = MouseState.IsButtonDown(MouseButton.Right);
 
-			freecamLocal.X = MathHelper.Clamp(freecamLocal.X, -MathHelper.PiOver2 + 0.0001f, MathHelper.PiOver2 - 0.0001f);
+			if(CursorGrabbed)
+			{
+				freecamLocal += MouseState.Delta.Yx * sensitivity;
 
-			Camera.transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
+				freecamLocal.X = MathHelper.Clamp(freecamLocal.X, -MathHelper.PiOver2 + 0.0001f, MathHelper.PiOver2 - 0.0001f);
+
+				Camera.transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
+			}
+			else
+			{
+				CursorGrabbed = false;
+				CursorVisible = true;
+			}
 
 			Title = $"Lunacy Level Editor | {1 / args.Time}";
 

@@ -17,12 +17,6 @@ namespace LibLunacy
 			[FileOffset(0x12)] public ushort indexCount;
 			[FileOffset(0x20)] public uint boneMap;				//Should turn this into a reference
 
-			//Geometry data included here for ease of access
-			public float[] vPositions;
-			public float[] vTexCoords;
-			//public float[] vNormals;
-			public uint[] indices;
-
 			public CShader shader;
 		}
 		[FileStructure(0x08)]
@@ -70,7 +64,8 @@ namespace LibLunacy
 		public ulong id;		//Either tuid or index depending on game
 		public Vector3 boundingSpherePosition;
 		public float boundingSphereRadius;
-
+		StreamHelper vertexStream;
+		StreamHelper indexStream;
 
 		public uint MetadataCount
 		{
@@ -89,8 +84,6 @@ namespace LibLunacy
 		{
 			this.file = file;
 			IGFile.SectionHeader section = file.QuerySection(0xD100);
-			StreamHelper vertexStream;
-			StreamHelper indexStream;
 			if(section.length == 0x100)
 			{
 				file.sh.Seek(section.offset);
@@ -174,56 +167,43 @@ namespace LibLunacy
 				id = index;
 			}
 
-
-			InitializeBuffers(vertexStream, indexStream);
-			vertexStream.Close();
-			indexStream.Close();
-
 			LoadDependancies(al);
-			GC.Collect();
 		}
-		private void InitializeBuffers(StreamHelper vertexStream, StreamHelper indexStream)
+		public void GetBuffers(MobyMesh mesh, out uint[] indices, out float[] vPositions, out float[] vTexCoords)
 		{
-			for(int i = 0; i < bangles.Length; i++)
+			indices = new uint[mesh.indexCount];
+			indexStream.Seek(mesh.indexIndex * 2);
+			for(int k = 0; k < mesh.indexCount; k++)
 			{
-				for(int j = 0; j < bangles[i].count; j++)
-				{
-					bangles[i].meshes[j].indices = new uint[bangles[i].meshes[j].indexCount];
-					indexStream.Seek(bangles[i].meshes[j].indexIndex * 2);
-					for(int k = 0; k < bangles[i].meshes[j].indexCount; k++)
-					{
-						bangles[i].meshes[j].indices[k] = indexStream.ReadUInt16();
-					}
+				indices[k] = indexStream.ReadUInt16();
+			}
 
-					int stride = bangles[i].meshes[j].vertexType == 1 ? 0x1C : 0x14;
-					bangles[i].meshes[j].vPositions = new float[bangles[i].meshes[j].vertexCount * 3];
-					bangles[i].meshes[j].vTexCoords = new float[bangles[i].meshes[j].vertexCount * 2];
-					//bangles[i].meshes[j].vNormals = new float[bangles[i].meshes[j].vertexCount * 3];
-					for(int k = 0; k < bangles[i].meshes[j].vertexCount; k++)
-					{
-						vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * k + 0x00);
-						bangles[i].meshes[j].vPositions[k * 3 + 0] = vertexStream.ReadInt16() * scale;
-						bangles[i].meshes[j].vPositions[k * 3 + 1] = vertexStream.ReadInt16() * scale;
-						bangles[i].meshes[j].vPositions[k * 3 + 2] = vertexStream.ReadInt16() * scale;
+			int stride = mesh.vertexType == 1 ? 0x1C : 0x14;
+			vPositions = new float[mesh.vertexCount * 3];
+			vTexCoords = new float[mesh.vertexCount * 2];
+			//bangles[i].meshes[j].vNormals = new float[bangles[i].meshes[j].vertexCount * 3];
+			for(int k = 0; k < mesh.vertexCount; k++)
+			{
+				vertexStream.Seek(mesh.vertexOffset + stride * k + 0x00);
+				vPositions[k * 3 + 0] = vertexStream.ReadInt16() * scale;
+				vPositions[k * 3 + 1] = vertexStream.ReadInt16() * scale;
+				vPositions[k * 3 + 2] = vertexStream.ReadInt16() * scale;
 
-						vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * k + (bangles[i].meshes[j].vertexType == 1 ? 0x10 : 0x08));
+				vertexStream.Seek(mesh.vertexOffset + stride * k + (mesh.vertexType == 1 ? 0x10 : 0x08));
 
-						bangles[i].meshes[j].vTexCoords[k * 2 + 0] = (float)vertexStream.ReadHalf();
-						bangles[i].meshes[j].vTexCoords[k * 2 + 1] = (float)vertexStream.ReadHalf();
+				vTexCoords[k * 2 + 0] = (float)vertexStream.ReadHalf();
+				vTexCoords[k * 2 + 1] = (float)vertexStream.ReadHalf();
 
-						/*vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * (k+1) - 0x04);
-						vertexStream.bitPosition = 1;
-						int vnx = (int)vertexStream.ReadIntN(11);
-						int vny = (int)vertexStream.ReadIntN(10);
-						int vnz = (int)vertexStream.ReadIntN(10);
-						bangles[i].meshes[j].vNormals[k * 3 + 0] = (vnx / 511f) * 2 - 2;
-						bangles[i].meshes[j].vNormals[k * 3 + 1] = (vny / 511f) * 2 - 2;
-						bangles[i].meshes[j].vNormals[k * 3 + 2] = (vnz / 511f) * 2 - 2;*/
-					}
-				}
+				/*vertexStream.Seek(bangles[i].meshes[j].vertexOffset + stride * (k+1) - 0x04);
+				vertexStream.bitPosition = 1;
+				int vnx = (int)vertexStream.ReadIntN(11);
+				int vny = (int)vertexStream.ReadIntN(10);
+				int vnz = (int)vertexStream.ReadIntN(10);
+				bangles[i].meshes[j].vNormals[k * 3 + 0] = (vnx / 511f) * 2 - 2;
+				bangles[i].meshes[j].vNormals[k * 3 + 1] = (vny / 511f) * 2 - 2;
+				bangles[i].meshes[j].vNormals[k * 3 + 2] = (vnz / 511f) * 2 - 2;*/
 			}
 		}
-
 		public void LoadDependancies(AssetLoader al)
 		{
 			IGFile.SectionHeader shaderSection;
@@ -269,10 +249,12 @@ namespace LibLunacy
 				{
 					Console.WriteLine($"Submesh {j+1}/{bangles[i].count}");
 
+					GetBuffers(bangles[i].meshes[j], out uint[] indices, out float[] vPositions, out float[] vTexCoords);
+
 					for(int k = 0; k < bangles[i].meshes[j].vertexCount; k++)
 					{
-						obj.Append($"v {bangles[i].meshes[j].vPositions[k * 3].ToString("F8")} {bangles[i].meshes[j].vPositions[k * 3 + 1].ToString("F8")} {bangles[i].meshes[j].vPositions[k * 3 + 2].ToString("F8")}\n");
-						obj.Append($"vt {bangles[i].meshes[j].vTexCoords[k * 2].ToString("F8")} {bangles[i].meshes[j].vTexCoords[k * 2 + 1].ToString("F8")}\n");
+						obj.Append($"v {vPositions[k * 3].ToString("F8")} {vPositions[k * 3 + 1].ToString("F8")} {vPositions[k * 3 + 2].ToString("F8")}\n");
+						obj.Append($"vt {vTexCoords[k * 2].ToString("F8")} {vTexCoords[k * 2 + 1].ToString("F8")}\n");
 						//obj.Append($"vn {bangles[i].meshes[j].vNormals[k * 3].ToString("F8")} {bangles[i].meshes[j].vNormals[k * 3 + 1].ToString("F8")} {bangles[i].meshes[j].vNormals[k * 3 + 2].ToString("F8")}\n");
 					}
 
@@ -280,9 +262,9 @@ namespace LibLunacy
 
 					for(int k = 0; k < bangles[i].meshes[j].indexCount; k += 3)
 					{
-						string i1 = (bangles[i].meshes[j].indices[k + 0] + maxIndex + 1).ToString();
-						string i2 = (bangles[i].meshes[j].indices[k + 1] + maxIndex + 1).ToString();
-						string i3 = (bangles[i].meshes[j].indices[k + 2] + maxIndex + 1).ToString();
+						string i1 = (indices[k + 0] + maxIndex + 1).ToString();
+						string i2 = (indices[k + 1] + maxIndex + 1).ToString();
+						string i3 = (indices[k + 2] + maxIndex + 1).ToString();
 						//obj.Append($"f {i1}/{i1}/{i1} {i2}/{i2}/{i2} {i3}/{i3}/{i3}\n");
 						obj.Append($"f {i1}/{i1} {i2}/{i2} {i3}/{i3}\n");
 					}
@@ -294,6 +276,8 @@ namespace LibLunacy
 		}
 		public void Dispose()
 		{
+			vertexStream.Close();
+			indexStream.Close();
 			file.Dispose();
 		}
 	}

@@ -13,24 +13,27 @@ namespace Lunacy
 		int EBO;
 		int indexCount;
 		Material material;
-		static Material pickingMaterial;
 
 		public Drawable(){}
-		public Drawable(ref CMoby.MobyMesh mesh)
+		public Drawable(CMoby moby, CMoby.MobyMesh mesh)
 		{
 			Prepare();
-			SetVertexPositions(mesh.vPositions);
-			SetVertexTexCoords(mesh.vTexCoords);
-			SetIndices(mesh.indices);
+			moby.GetBuffers(mesh, out uint[] indices, out float[] vPositions, out float[] vTexCoords);
+			SetVertexPositions(vPositions);
+			SetVertexTexCoords(vTexCoords);
+			SetIndices(indices);
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
-		public Drawable(ref CTie.TieMesh mesh)
+		public Drawable(CTie tie, CTie.TieMesh mesh)
 		{
 			Prepare();
-			SetVertexPositions(mesh.vPositions);
-			SetVertexTexCoords(mesh.vTexCoords);
-			SetIndices(mesh.indices);
+
+			tie.GetBuffers(mesh, out uint[] indices, out float[] vPositions, out float[] vTexCoords);
+
+			SetVertexPositions(vPositions);
+			SetVertexTexCoords(vTexCoords);
+			SetIndices(indices);
 			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
@@ -41,11 +44,6 @@ namespace Lunacy
 			SetIndices(mesh.indices);
 			//Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(MaterialManager.materials["stdv;whitef"], null));
-		}
-
-		public static void InitPicking()
-		{
-			pickingMaterial = new Material(MaterialManager.materials["stdv;pickingf"]);
 		}
 
 		public void Prepare()
@@ -117,20 +115,10 @@ namespace Lunacy
 			}
 		}
 
-		public void Draw(float dId = 0)
+		public void Draw()
 		{
-			if(!Window.showpicker)
-			{
-				material.Use();
-				material.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
-			}
-			else
-			{
-				pickingMaterial.Use();
-				pickingMaterial.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
-				pickingMaterial.SetFloat("picking", dId);
-				pickingMaterial.SetFloat("maxInst", transforms.Count);
-			}
+			material.Use();
+			material.SetMatrix4x4("worldToClip", Camera.WorldToView * Camera.ViewToClip);
 
 			GL.BindVertexArray(VAO);
 			GL.DrawElementsInstanced(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, transforms.Count);
@@ -165,12 +153,12 @@ namespace Lunacy
 
 	public class DrawableList : List<Drawable>
 	{
-		public DrawableList(ref CMoby.Bangle bangle)
+		public DrawableList(CMoby moby, CMoby.Bangle bangle)
 		{
 			this.Capacity = (int)bangle.count;
 			for(int i = 0; i < bangle.count; i++)
 			{
-				this.Add(new Drawable(ref bangle.meshes[i]));
+				this.Add(new Drawable(moby, bangle.meshes[i]));
 			}
 		}
 		public DrawableList(CTie tie)
@@ -178,7 +166,7 @@ namespace Lunacy
 			this.Capacity = (int)tie.meshes.Length;
 			for(int i = 0; i < tie.meshes.Length; i++)
 			{
-				this.Add(new Drawable(ref tie.meshes[i]));
+				this.Add(new Drawable(tie, tie.meshes[i]));
 			}
 		}
 		public void AddDrawCall(Transform transform)
@@ -196,11 +184,11 @@ namespace Lunacy
 			}
 		}
 
-		public void Draw(float dId = 0)
+		public void Draw()
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw(dId);
+				this[i].Draw();
 			}
 		}
 
@@ -229,7 +217,7 @@ namespace Lunacy
 			this.Capacity = (int)moby.bangles.Length;
 			for(int i = 0; i < moby.bangles.Length; i++)
 			{
-				this.Add(new DrawableList(ref moby.bangles[i]));
+				this.Add(new DrawableList(moby, moby.bangles[i]));
 			}
 		}
 		public void AddDrawCall(Transform transform)
@@ -246,11 +234,11 @@ namespace Lunacy
 				this[i].ConsolidateDrawCalls();
 			}
 		}
-		public void Draw(float dId = 0)
+		public void Draw()
 		{
 			for(int i = 0; i < Count; i++)
 			{
-				this[i].Draw(dId);
+				this[i].Draw();
 			}
 		}
 		public void Draw(Transform transform)

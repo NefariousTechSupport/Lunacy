@@ -66,13 +66,13 @@ namespace Lunacy
 			KeyValuePair<ulong, DrawableListList>[] mobys = AssetManager.Singleton.mobys.ToArray();
 			for(int i = 0; i < mobys.Length; i++)
 			{
-				mobys[i].Value.Draw(i / (float)mobys.Length);
+				mobys[i].Value.Draw();
 
 			}
 			KeyValuePair<ulong, DrawableList>[] ties = AssetManager.Singleton.ties.ToArray();
 			for(int i = 0; i < ties.Length; i++)
 			{
-				ties[i].Value.Draw(i / (float)ties.Length);
+				ties[i].Value.Draw();
 			}
 			foreach(List<Entity> tfrag in TFrags)
 			{
@@ -93,6 +93,7 @@ namespace Lunacy
 
 		public Transform transform;
 
+		//xyz is pos, w is radius
 		public Vector4 boundingSphere;
 
 		public Entity(Region.CMobyInstance mobyInstance)
