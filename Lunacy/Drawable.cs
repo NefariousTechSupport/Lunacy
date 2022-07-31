@@ -22,7 +22,7 @@ namespace Lunacy
 			SetVertexPositions(vPositions);
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
-			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
+			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
 		public Drawable(CTie tie, CTie.TieMesh mesh)
@@ -34,7 +34,7 @@ namespace Lunacy
 			SetVertexPositions(vPositions);
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
-			Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
+			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
 		public Drawable(ref Zone.NewTFrag mesh)

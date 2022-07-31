@@ -12,11 +12,11 @@ namespace Lunacy
 
 		public void Initialize(AssetLoader al)
 		{
-			//TODO: cache textures and materials
-			//foreach(KeyValuePair<uint, CTexture> ctex in al.textures)
-			//{
-			//	textures.Add(ctex.Key, new Texture(ctex.Value));
-			//}
+			//TODO: cache materials
+			foreach(KeyValuePair<uint, CTexture> ctex in al.textures)
+			{
+				textures.Add(ctex.Key, new Texture(ctex.Value));
+			}
 			foreach(KeyValuePair<ulong, CMoby> moby in al.mobys)
 			{
 				mobys.Add(moby.Key, new DrawableListList(moby.Value));

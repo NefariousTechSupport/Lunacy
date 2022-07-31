@@ -1,9 +1,10 @@
 namespace LibLunacy
 {
+	//Assets are managed here and whenever an asset needs to reference another, that is done here
 	public class AssetLoader
 	{
 		public FileManager fm;
-		
+
 		public Dictionary<ulong, CMoby> mobys = new Dictionary<ulong, CMoby>();
 		public Dictionary<ulong, CTie> ties = new Dictionary<ulong, CTie>();
 		public Dictionary<ulong, CShader> shaders = new Dictionary<ulong, CShader>();
@@ -115,7 +116,6 @@ namespace LibLunacy
 				MemoryStream shaderms = new MemoryStream(shaderdat);
 				IGFile igshader = new IGFile(shaderms);
 				CShader shader = new CShader(igshader, this);
-				//Console.WriteLine($"shader {i.ToString("X04")} albedo offset is {shader.name}");
 				shaders.Add(shaderPtrs[i].tuid, shader);
 			}
 		}

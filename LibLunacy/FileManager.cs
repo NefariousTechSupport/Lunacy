@@ -1,13 +1,14 @@
 namespace LibLunacy
 {
+	//Files are loaded here
 	public class FileManager
 	{
 		public string folderPath = string.Empty;
 
-		public Dictionary<string, IGFile> igfiles = new Dictionary<string, IGFile>();
-		public Dictionary<string, Stream> rawfiles = new Dictionary<string, Stream>();
+		public Dictionary<string, IGFile> igfiles = new Dictionary<string, IGFile>();	//Actual IGFiles
+		public Dictionary<string, Stream> rawfiles = new Dictionary<string, Stream>();	//Raw data, includes files containing nothing but IGFiles
 
-		public bool isOld { get; private set; }
+		public bool isOld { get; private set; }		//if true, old filesystem, else new filesystem
 
 		public void LoadFolder(string folderPath)
 		{
@@ -31,7 +32,7 @@ namespace LibLunacy
 				LoadFile("gameplay.dat", false);
 				LoadFile("assetlookup.dat", false);
 
-				//Load raw files, a lot of these are actually a bunch of IGFiles, however the files themselves are not IGFiles
+				//Load raw files, a lot of these files contain a bunch of IGFiles, however the files themselves are not IGFiles
 				LoadFile("mobys.dat", true);
 				LoadFile("ties.dat", true);
 				LoadFile("textures.dat", true);
