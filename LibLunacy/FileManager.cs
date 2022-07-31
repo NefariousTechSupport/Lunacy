@@ -5,8 +5,8 @@ namespace LibLunacy
 	{
 		public string folderPath = string.Empty;
 
-		public Dictionary<string, IGFile> igfiles = new Dictionary<string, IGFile>();	//Actual IGFiles
-		public Dictionary<string, Stream> rawfiles = new Dictionary<string, Stream>();	//Raw data, includes files containing nothing but IGFiles
+		public Dictionary<string, IGFile?> igfiles = new Dictionary<string, IGFile?>();	//Actual IGFiles
+		public Dictionary<string, Stream?> rawfiles = new Dictionary<string, Stream?>();	//Raw data, includes files containing nothing but IGFiles
 
 		public bool isOld { get; private set; }		//if true, old filesystem, else new filesystem
 
@@ -42,7 +42,7 @@ namespace LibLunacy
 			}
 		}
 
-		public object LoadFile(string name, bool isRaw)
+		public object? LoadFile(string name, bool isRaw)
 		{
 			//If anyone's wondering, the following basically doubles ram usage but doesn't latch onto files, useful for debugging
 			/*FileStream fs = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
@@ -51,7 +51,11 @@ namespace LibLunacy
 			fs.Close();*/
 
 			//The following doesn't use as much ram but holds onto files
-			FileStream ms = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
+			FileStream? ms = null;
+			if(File.Exists($"{folderPath}/{name}"))
+			{
+				ms = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
+			}
 
 			if(isRaw)
 			{
@@ -60,7 +64,11 @@ namespace LibLunacy
 			}
 			else
 			{
-				IGFile file = new IGFile(ms);
+				IGFile? file = null;
+				if(ms != null)
+				{
+					file = new IGFile(ms);
+				}
 				igfiles.Add(name, file);
 				return file;
 			}

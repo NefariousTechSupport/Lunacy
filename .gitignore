@@ -1,4 +1,5 @@
 *.obj
+*.dds
 .vscode
 .vs
 */bin
