@@ -43,7 +43,7 @@ namespace Lunacy
 			MaterialManager.LoadMaterial("stdv;whitef", "shaders/stdvsingle.glsl", "shaders/whitef.glsl");
 			MaterialManager.LoadMaterial("stdv;pickingf", "shaders/stdv.glsl", "shaders/pickingf.glsl");
 
-			Camera.CreatePerspective(MathHelper.PiOver2);
+			Camera.CreatePerspective(MathHelper.PiOver2, ClientSize.X / (float)ClientSize.Y);
 
 			gui = new GUI(this);
 
@@ -107,6 +107,15 @@ namespace Lunacy
 			Title = $"Lunacy Level Editor | {1 / args.Time}";
 
 			base.OnUpdateFrame(args);
+		}
+
+		protected override void OnResize(ResizeEventArgs e)
+		{
+			base.OnResize(e);
+
+			GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
+			Camera.CreatePerspective(MathHelper.PiOver2, ClientSize.X / (float)ClientSize.Y);
+			gui.Resize();
 		}
 
 		protected override void OnClosing(CancelEventArgs e)

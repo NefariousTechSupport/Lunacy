@@ -19,6 +19,11 @@ namespace Lunacy
 			this.wnd = wnd;
 		}
 
+		public void Resize()
+		{
+			controller.WindowResized(wnd.ClientSize.X, wnd.ClientSize.Y);
+		}
+
 		public static void InitializeFramebuffer()
 		{
 			framebuffer = GL.GenFramebuffer();

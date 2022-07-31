@@ -13,9 +13,9 @@ namespace Lunacy
 		}
 		public static Matrix4 ViewToClip;
 
-		public static void CreatePerspective(float fov)
+		public static void CreatePerspective(float fov, float aspect)
 		{
-			ViewToClip = Matrix4.CreatePerspectiveFieldOfView(fov, 1280f/720f, 0.1f, 10000f);
+			ViewToClip = Matrix4.CreatePerspectiveFieldOfView(fov, aspect, 0.1f, 10000f);
 		}
 	}
 }
