@@ -19,7 +19,7 @@ namespace Lunacy
 					Title = "Lunacy Level Editor",
 					Flags = ContextFlags.ForwardCompatible
 				},
-				args[0]
+				args
 			);
 
 			wnd.Run();

@@ -5,6 +5,8 @@ namespace Lunacy
 		static Lazy<EntityManager> lazy = new Lazy<EntityManager>(() => new EntityManager());
 
 		public static EntityManager Singleton => lazy.Value;
+		public bool loadUfrags = false;
+
 
 		public Dictionary<string, List<Entity>> MobyHandles = new Dictionary<string, List<Entity>>();
 		public List<List<Entity>> TieInstances = new List<List<Entity>>();
@@ -35,9 +37,12 @@ namespace Lunacy
 					TieInstances[i].Add(new Entity(ties[j].Value));
 				}
 				TFrags.Add(new List<Entity>());
-				for(uint j = 0; j < gp.zones[i].tfrags.Length; j++)
+				if(loadUfrags)
 				{
-					TFrags[i].Add(new Entity(gp.zones[i].tfrags[j]));
+					for(uint j = 0; j < gp.zones[i].tfrags.Length; j++)
+					{
+						TFrags[i].Add(new Entity(gp.zones[i].tfrags[j]));
+					}
 				}
 			}
 
@@ -123,7 +128,15 @@ namespace Lunacy
 			instance = tfrag;
 			drawable = new Drawable(ref tfrag);
 			name = "hi";
-			transform = new Transform(Utils.ToOpenTKMatrix4(tfrag.transformation));
+			//transform = new Transform(Utils.ToOpenTKVector3(tfrag.transformation), Vector3.Zero, Vector3.One);
+			Matrix4 transposed = Utils.ToOpenTKMatrix4(tfrag.transformation);
+			//transform = new Transform(transposed);
+			transform = new Transform(new Matrix4(
+				transposed.M11, transposed.M12, transposed.M13, 0,
+				transposed.M21, transposed.M22, transposed.M23, 0,
+				transposed.M31, transposed.M32, transposed.M33, 0,
+				transposed.M41, transposed.M42, transposed.M43, 1
+			));
 		}
 
 		public void SetPosition(Vector3 position)

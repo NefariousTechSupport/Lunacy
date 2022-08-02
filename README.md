@@ -15,3 +15,7 @@ Level editor for the Ratchet and Clank PS3 games along with the Resistance serie
   * wasd to move, shift to move faster
   * p shows the names of all objects that the mouse is hovering over
   * select an object in either the regions or zones windows to teleport to that object
+ 
+## For Devs
+
+* use the arg `--load-ufrags` to enable the loading of ufrags

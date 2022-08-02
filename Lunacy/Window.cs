@@ -12,9 +12,10 @@ namespace Lunacy
 
 		public Vector2 freecamLocal;
 
-		public Window(GameWindowSettings gws, NativeWindowSettings nws, string folderPath) : base(gws, nws)
+		public Window(GameWindowSettings gws, NativeWindowSettings nws, string[] args) : base(gws, nws)
 		{
-			LoadFolder(folderPath);
+			LoadFolder(args[0]);
+			EntityManager.Singleton.loadUfrags = args.Any(x => x == "--load-ufrags");
 		}
 
 		public void LoadFolder(string folderPath)
