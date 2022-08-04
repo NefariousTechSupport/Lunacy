@@ -8,6 +8,8 @@ namespace LibLunacy
 		public Dictionary<string, IGFile?> igfiles = new Dictionary<string, IGFile?>();	//Actual IGFiles
 		public Dictionary<string, Stream?> rawfiles = new Dictionary<string, Stream?>();	//Raw data, includes files containing nothing but IGFiles
 
+		public DebugFile? debug = null;
+
 		public bool isOld { get; private set; }		//if true, old filesystem, else new filesystem
 
 		public void LoadFolder(string folderPath)
@@ -22,9 +24,16 @@ namespace LibLunacy
 				LoadFile("main.dat", false);
 				LoadFile("vertices.dat", false);
 				LoadFile("gameplay.dat", false);
+				LoadFile("debug.dat", false);
 
 				//Load raw files
 				LoadFile("textures.dat", true);
+				LoadFile("texstream.dat", true);
+
+				if(igfiles["debug.dat"] != null)
+				{
+					debug = new DebugFile(igfiles["debug.dat"]);
+				}
 			}
 			else
 			{

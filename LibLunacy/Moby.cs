@@ -118,7 +118,6 @@ namespace LibLunacy
 				OldMoby omoby = FileUtils.ReadStructure<OldMoby>(file.sh);
 
 				bangles = omoby.bangles;
-				name = $"Moby_{index.ToString("X04")}";
 				scale = omoby.scale;
 				boundingSpherePosition = omoby.boundingSpherePosition;
 				boundingSphereRadius = omoby.boundingSphereRotation;
@@ -165,6 +164,9 @@ namespace LibLunacy
 				indexStream = new StreamHelper(indexms, file.sh._endianness);
 
 				id = index;
+
+				if(al.fm.debug != null) name = al.fm.debug.GetMobyPrototypeName(index).name;
+				else                    name = $"Moby_{index.ToString("X04")}";
 			}
 
 			LoadDependancies(al);
@@ -243,12 +245,9 @@ namespace LibLunacy
 			obj.Append($"mtllib unused.mtl\n");
 			for(int i = 0; i < bangles.Length; i++)
 			{
-				Console.WriteLine($"Bangle {i+1}/{bangles.Length}");
 				obj.Append($"o Bangle_{i}\n");
 				for(int j = 0; j < bangles[i].count; j++)
 				{
-					Console.WriteLine($"Submesh {j+1}/{bangles[i].count}");
-
 					GetBuffers(bangles[i].meshes[j], out uint[] indices, out float[] vPositions, out float[] vTexCoords);
 
 					for(int k = 0; k < bangles[i].meshes[j].vertexCount; k++)

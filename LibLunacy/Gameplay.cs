@@ -122,18 +122,23 @@ namespace LibLunacy
 		public Zone(IGFile file, AssetLoader al)
 		{
 			IGFile.SectionHeader tieInstSection;
-			AssetLoader.AssetPointer[] names = null;
+			AssetLoader.AssetPointer[] newnames = null;
+			DebugFile.DebugInstanceName[] oldnames = null;
 
 			if(al.fm.isOld)
 			{
 				tieInstSection = file.QuerySection(0x9240);
+				if(al.fm.debug != null)
+				{
+					oldnames = al.fm.debug.GetTieInstanceNames();
+				}
 			}
 			else
 			{
 				IGFile.SectionHeader tieNameSection = file.QuerySection(0x72C0);
 				file.sh.Seek(tieNameSection.offset);
 				Console.WriteLine($"names @ {tieNameSection.offset}");
-				names = FileUtils.ReadStructureArray<AssetLoader.AssetPointer>(file.sh, tieNameSection.count);
+				newnames = FileUtils.ReadStructureArray<AssetLoader.AssetPointer>(file.sh, tieNameSection.count);
 				
 				tieInstSection = file.QuerySection(0x7240);
 			}
@@ -146,11 +151,12 @@ namespace LibLunacy
 				tieInstances.Add((ulong)i, new CTieInstance(ties[i], al, file));
 				if(al.fm.isOld)
 				{
-					tieInstances.Last().Value.name = $"Tie_{i}";
+					if(al.fm.debug != null) tieInstances.Last().Value.name = oldnames[i].name;
+					else                    tieInstances.Last().Value.name = $"Tie_{i}";
 				}
 				else
 				{
-					tieInstances.Last().Value.name = file.sh.ReadString(names[i].offset);
+					tieInstances.Last().Value.name = file.sh.ReadString(newnames[i].offset);
 				}
 			}
 
@@ -276,10 +282,23 @@ namespace LibLunacy
 			file.sh.Seek(mobyInstSections.offset);
 			OldMobyInstance[] mobys = FileUtils.ReadStructureArray<OldMobyInstance>(file.sh, mobyInstSections.count);
 
+			DebugFile.DebugInstanceName[] names = null;
+			if(al.fm.debug != null)
+			{
+				names = al.fm.debug.GetMobyInstanceNames();
+			}
+
 			for(int i = 0; i < mobys.Length; i++)
 			{
 				mobyInstances.Add((ulong)i, new CMobyInstance(mobys[i], al));
-				mobyInstances.Last().Value.name = $"Moby_{mobys[i].mobyIndex.ToString("X04")}_Instance_{i}";
+				if(names != null)
+				{
+					mobyInstances.Last().Value.name = names[i].name;
+				}
+				else
+				{
+					mobyInstances.Last().Value.name = $"Moby_{mobys[i].mobyIndex.ToString("X04")}_Instance_{i}";
+				}
 			}
 		}
 		public Region(AssetLoader al, string regionName)
@@ -295,7 +314,7 @@ namespace LibLunacy
 			IGFile.SectionHeader mobyNamesSection = prius.QuerySection(0x2504C);
 			prius.sh.Seek(mobyNamesSection.offset);
 			NewInstance[] names = FileUtils.ReadStructureArray<NewInstance>(prius.sh, mobyInstSection.count);
-			
+
 			for(int i = 0; i < mobys.Length; i++)
 			{
 				mobyInstances.Add(names[i].tuid, new CMobyInstance(mobys[i], names[i], al, region));

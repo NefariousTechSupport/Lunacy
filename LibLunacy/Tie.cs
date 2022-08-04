@@ -55,11 +55,12 @@ namespace LibLunacy
 
 			if(al.fm.isOld)
 			{
-				name = $"Tie_{index.ToString("X04")}";
 				id = section.offset + index * 0x80;
 				geometryFile = al.fm.igfiles["vertices.dat"];
 				vertexSection = geometryFile.QuerySection(0x9000);
 				indexSection = geometryFile.QuerySection(0x9100);
+				if(al.fm.debug != null) name = al.fm.debug.GetTiePrototypeName(index).name;
+				else                    name = $"Tie_{index.ToString("X04")}";
 			}
 			else
 			{
@@ -131,7 +132,6 @@ namespace LibLunacy
 			for(int i = 0; i < meshes.Length; i++)
 			{
 				obj.Append($"o Mesh_{i}\n");
-				Console.WriteLine($"Submesh {i+1}/{meshes.Length}");
 
 				GetBuffers(meshes[i], out uint[] indices, out float[] vPositions, out float[] vTexCoords);
 

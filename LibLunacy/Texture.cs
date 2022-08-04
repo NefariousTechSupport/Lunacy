@@ -17,6 +17,12 @@ namespace LibLunacy
 			[FileOffset(0x18)] public ushort width;
 			[FileOffset(0x1A)] public ushort height;
 		}
+		[FileStructure(0x10)]
+		public struct OldTexstreamReference
+		{
+			[FileOffset(0x00)] public uint offset;				//offsets into textures.dat
+			[FileOffset(0x06)] public ushort index;
+		}
 		[FileStructure(0x04)]
 		public struct NewTexMeta
 		{
@@ -32,6 +38,7 @@ namespace LibLunacy
 		public int height;
 		public int mipmapCount;
 		public uint id;
+		public string name;
 
 		public enum TexFormat
 		{
@@ -65,25 +72,43 @@ namespace LibLunacy
 			{
 				IGFile main = fm.igfiles["main.dat"];
 				Stream textures = fm.rawfiles["textures.dat"];
-				//Stream texstream = fm.rawfiles["texstream.dat"];
+				Stream? texstream = fm.rawfiles["texstream.dat"];
 
 				IGFile.SectionHeader texrefs = main.QuerySection(0x5200);
 				IGFile.SectionHeader texstrrefs = main.QuerySection(0x9800);
 
 				main.sh.Seek(texrefs.offset + index * 0x20);
 				OldTextureReference otr = FileUtils.ReadStructure<OldTextureReference>(main.sh);
+				main.sh.Seek(texstrrefs.offset);
+				OldTexstreamReference[] ots = FileUtils.ReadStructureArray<OldTexstreamReference>(main.sh, texstrrefs.count);
 
 				width = otr.width;
 				height = otr.height;
 				mipmapCount = otr.mipmapCount;
 				format = (TexFormat)((otr.formatBitField >> 8) & 0xF);
 
+				if(texstream != null && ots.Any(x => x.index == index))
+				{
+					width *= 2;
+					height *= 2;
+					mipmapCount += 1;
+				}
+
 				data = new byte[HighmipSize];
 
-				textures.Seek(otr.offset, SeekOrigin.Begin);
-				textures.Read(data);
+				if(texstream != null && ots.Any(x => x.index == index))
+				{
+					texstream.Seek(ots.First(x => x.index == index).offset, SeekOrigin.Begin);
+					texstream.Read(data);
+				}
+				else
+				{
+					textures.Seek(otr.offset, SeekOrigin.Begin);
+					textures.Read(data);
+				}
 
 				id = (uint)(texrefs.offset + index * 0x20);
+				name = $"Texture_{index}";
 			}
 			else
 			{
@@ -108,6 +133,70 @@ namespace LibLunacy
 				highmips.Read(data);
 
 				id = (uint)hmipPtr.tuid;
+			}
+		}
+
+		private static readonly byte[] ddsHeader = new byte[0x80]
+		{
+			0x44, 0x44, 0x53, 0x20,		// "DDS "
+			0x7C, 0x00, 0x00, 0x00,		// Version Info
+			0x07, 0x10, 0x0A, 0x00,		// More Version Info
+			0x00, 0x00, 0x00, 0x00,		// Height
+			0x00, 0x00, 0x00, 0x00,		// Width
+			0x00, 0x00, 0x00, 0x00,		// Size
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// Mipmaps 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x20, 0x00, 0x00, 0x00,		// 
+			0x04, 0x00, 0x00, 0x00,		// 
+			0x44, 0x58, 0x54, 0x30,		// "DXT0"
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x08, 0x10, 0x40, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00,		// 
+			0x00, 0x00, 0x00, 0x00 		// 
+		};
+		public void ExportToDDS(Stream dst, bool leaveOpen = true)
+		{
+			dst.Write(ddsHeader, 0x00, 0x80);
+			dst.Seek(0x0C, SeekOrigin.Begin);
+			dst.Write(BitConverter.GetBytes((uint)height), 0x00, 0x04);
+			dst.Write(BitConverter.GetBytes((uint)width), 0x00, 0x04);
+			dst.Write(BitConverter.GetBytes(HighmipSize), 0x00, 0x04);
+			dst.Seek(0x57, SeekOrigin.Begin);
+			switch(format)
+			{
+				case TexFormat.DXT1:
+					dst.Write(BitConverter.GetBytes((byte)0x31), 0x00, 0x01);
+					break;
+				case TexFormat.DXT3:
+					dst.Write(BitConverter.GetBytes((byte)0x33), 0x00, 0x01);
+					break;
+				case TexFormat.DXT5:
+					dst.Write(BitConverter.GetBytes((byte)0x35), 0x00, 0x01);
+					break;
+			}
+			dst.Seek(0x80, SeekOrigin.Begin);
+			dst.Write(data, 0x00, (int)HighmipSize);
+			dst.Flush();
+			if(!leaveOpen)
+			{
+				dst.Close();
 			}
 		}
 	}

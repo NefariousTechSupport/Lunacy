@@ -24,6 +24,9 @@ namespace LibLunacy
 			[FileOffset(0x10)] public uint albedoTuid;
 			[FileOffset(0x14)] public uint normalTuid;
 			[FileOffset(0x18)] public uint expensiveTuid;
+			[FileOffset(0x28), Reference] public string albedoName;
+			[FileOffset(0x2C), Reference] public string normalName;
+			[FileOffset(0x30), Reference] public string expensiveName;
 
 			public uint TextureCount => 3;
 		}
@@ -46,9 +49,37 @@ namespace LibLunacy
 			{
 				OldShader oshader = FileUtils.ReadStructure<OldShader>(file.sh);
 
-				if(oshader.albedoOffset != 0) albedo = al.textures[oshader.albedoOffset];
-				if(oshader.normalOffset != 0) normal = al.textures[oshader.normalOffset];
-				if(oshader.expensiveOffset != 0) expensive = al.textures[oshader.expensiveOffset];
+				DebugFile.DebugShaderName name = new DebugFile.DebugShaderName();
+
+				if(al.fm.debug != null)
+				{
+					name = al.fm.debug.GetShaderName(index);
+				}
+
+				if(oshader.albedoOffset != 0)
+				{
+					albedo = al.textures[oshader.albedoOffset];
+					if(al.fm.debug != null)
+					{
+						albedo.name = name.albedoName;
+					}
+				}
+				if(oshader.normalOffset != 0)
+				{
+					normal = al.textures[oshader.normalOffset];
+					if(al.fm.debug != null)
+					{
+						normal.name = name.normalName;
+					}
+				}
+				if(oshader.expensiveOffset != 0)
+				{
+					expensive = al.textures[oshader.expensiveOffset];
+					if(al.fm.debug != null)
+					{
+						expensive.name = name.expensiveName;
+					}
+				}
 			}
 			else
 			{
@@ -58,9 +89,21 @@ namespace LibLunacy
 				file.sh.Seek(refSection.offset, SeekOrigin.Begin);
 				NewReferences refs = FileUtils.ReadStructure<NewReferences>(file.sh);
 
-				if(refs.albedoTuid != 0 && al.textures.ContainsKey(refs.albedoTuid))       albedo    = al.textures[refs.albedoTuid];
-				if(refs.normalTuid != 0 && al.textures.ContainsKey(refs.normalTuid))       normal    = al.textures[refs.normalTuid];
-				if(refs.expensiveTuid != 0 && al.textures.ContainsKey(refs.expensiveTuid)) expensive = al.textures[refs.expensiveTuid];
+				if(refs.albedoTuid != 0 && al.textures.ContainsKey(refs.albedoTuid))
+				{
+					albedo = al.textures[refs.albedoTuid];
+					albedo.name = refs.albedoName;
+				}
+				if(refs.normalTuid != 0 && al.textures.ContainsKey(refs.normalTuid))
+				{
+					normal = al.textures[refs.normalTuid];
+					normal.name = refs.normalName;
+				}
+				if(refs.expensiveTuid != 0 && al.textures.ContainsKey(refs.expensiveTuid))
+				{
+					expensive = al.textures[refs.expensiveTuid];
+					expensive.name = refs.expensiveName;
+				}
 			}
 		}
 	}
