@@ -56,13 +56,10 @@ namespace Lunacy
 				{
 					for(int i = 0; i < mobys.Value.Count; i++)
 					{
-						if((Camera.transform.Position + mobys.Value[i].transform.Position).LengthSquared < 0.01f) Console.WriteLine(mobys.Value[i].name);
-						
 						ImGui.PushID($"{mobys.Key}:{i}:{mobys.Value[i].name}");
 						if(ImGui.Button(mobys.Value[i].name))
 						{
-							//if((mobys.Value[i].transform.Position).LengthSquared)
-							Camera.transform.Position = -mobys.Value[i].transform.Position;
+							Camera.transform.position = -mobys.Value[i].transform.position;
 							selectedEntity = mobys.Value[i];
 						}
 						ImGui.PopID();
@@ -74,14 +71,14 @@ namespace Lunacy
 			ImGui.Begin("Zones", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysVerticalScrollbar);
 			for(int j = 0; j < EntityManager.Singleton.TieInstances.Count; j++)
 			{
-				if(ImGui.CollapsingHeader($"Zone {j}"))
+				if(ImGui.CollapsingHeader(EntityManager.Singleton.zones[j].name))
 				{
 					for(int i = 0; i < EntityManager.Singleton.TieInstances[j].Count; i++)
 					{
 						ImGui.PushID($"{j}:{i}:{EntityManager.Singleton.TieInstances[j][i].name}");
 						if(ImGui.Button(EntityManager.Singleton.TieInstances[j][i].name))
 						{
-							Camera.transform.Position = -EntityManager.Singleton.TieInstances[j][i].transform.Position;
+							Camera.transform.position = -EntityManager.Singleton.TieInstances[j][i].transform.position;
 							selectedEntity = EntityManager.Singleton.TieInstances[j][i];
 						}
 						ImGui.PopID();
@@ -119,7 +116,7 @@ namespace Lunacy
 				{
 					for(int j = 0; j < EntityManager.Singleton.MobyHandles.ElementAt(i).Value.Count; j++)
 					{
-						if(EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].IntersectsRay(world, -Camera.transform.Position))
+						if(EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].IntersectsRay(world, -Camera.transform.position))
 						{
 							entityNames += $"{EntityManager.Singleton.MobyHandles.ElementAt(i).Value[j].name}\n";
 						}
@@ -129,7 +126,7 @@ namespace Lunacy
 				{
 					for(int j = 0; j < EntityManager.Singleton.TieInstances[i].Count; j++)
 					{
-						if(EntityManager.Singleton.TieInstances[i][j].IntersectsRay(world, -Camera.transform.Position))
+						if(EntityManager.Singleton.TieInstances[i][j].IntersectsRay(world, -Camera.transform.position))
 						{
 							entityNames += $"{EntityManager.Singleton.TieInstances[i][j].name}\n";
 						}
@@ -139,13 +136,23 @@ namespace Lunacy
 			}			
 		}
 
+		public void KeyPress(int c)
+		{
+			controller.PressChar((char)c);
+		}
+
+		private float test;
+		private string strtest = string.Empty;
+
 		private void ShowEntityInfo()
 		{
 			ImGui.Begin($"{selectedEntity.name} Properties");
-			System.Numerics.Vector3 position = Utils.ToNumericsVector3(selectedEntity.transform.Position);
-			ImGui.InputFloat3("Position: ", ref position);
-			selectedEntity.SetPosition(Utils.ToOpenTKVector3(position));
+			bool posChanged = false;
+			System.Numerics.Vector3 position = Utils.ToNumericsVector3(selectedEntity.transform.position);
+			if(ImGui.InputFloat3("Position: ", ref position)) posChanged = true;
+			if(posChanged) selectedEntity.SetPosition(Utils.ToOpenTKVector3(position));
 			ImGui.End();
+			//ImGui.ShowDemoWindow();
 		}
 
 		public void FrameEnd()

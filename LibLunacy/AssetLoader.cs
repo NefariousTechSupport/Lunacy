@@ -9,12 +9,21 @@ namespace LibLunacy
 		public Dictionary<ulong, CTie> ties = new Dictionary<ulong, CTie>();
 		public Dictionary<ulong, CShader> shaders = new Dictionary<ulong, CShader>();
 		public Dictionary<uint, CTexture> textures = new Dictionary<uint, CTexture>();
+		public Dictionary<ulong, CZone> zones = new Dictionary<ulong, CZone>();
 
 		public AssetLoader(FileManager fileManager)
 		{
 			fm = fileManager;
 		}
 
+		public void LoadAssets()
+		{
+			LoadTextures();
+			LoadShaders();
+			LoadMobys();
+			LoadTies();
+			LoadZones();
+		}
 		public void LoadMobys()
 		{
 			if(fm.isOld) LoadMobysOld();
@@ -145,6 +154,40 @@ namespace LibLunacy
 			for(int i = 0; i < highmips.Length; i++)
 			{
 				textures.Add((uint)highmips[i].tuid, new CTexture(fm, i));
+			}
+		}
+
+		public void LoadZones()
+		{
+			if(fm.isOld) LoadZonesOld();
+			else         LoadZonesNew();
+		}
+
+		private void LoadZonesOld()
+		{
+			IGFile main = fm.igfiles["main.dat"];
+			IGFile.SectionHeader zoneSection = main.QuerySection(0x5000);
+			for(int i = 0; i < zoneSection.count; i++)
+			{
+				zones.Add((ulong)i, new CZone(main, this));
+			}
+		}
+		private void LoadZonesNew()
+		{
+			IGFile assetlookup = fm.igfiles["assetlookup.dat"];
+			IGFile.SectionHeader zoneSection = assetlookup.QuerySection(0x1DA00);
+			assetlookup.sh.Seek(zoneSection.offset);
+			AssetPointer[] zonePtrs = FileUtils.ReadStructureArray<AssetPointer>(assetlookup.sh, zoneSection.length / 0x10);
+			Stream zoneStream = fm.rawfiles["zones.dat"];
+			for(int i = 0; i < zonePtrs.Length; i++)
+			{
+				byte[] zonedat = new byte[zonePtrs[i].length];
+				zoneStream.Seek(zonePtrs[i].offset, SeekOrigin.Begin);
+				zoneStream.Read(zonedat, 0x00, (int)zonePtrs[i].length);
+				MemoryStream zonems = new MemoryStream(zonedat);
+				IGFile igzone = new IGFile(zonems);
+				CZone zone = new CZone(igzone, this);
+				zones.Add(zonePtrs[i].tuid, zone);
 			}
 		}
 

@@ -23,10 +23,7 @@ namespace Lunacy
 			fm = new FileManager();
 			fm.LoadFolder(folderPath);
 			al = new AssetLoader(fm);
-			al.LoadTextures();
-			al.LoadShaders();
-			al.LoadMobys();
-			al.LoadTies();
+			al.LoadAssets();
 		}
 
 		protected override void OnLoad()
@@ -84,10 +81,10 @@ namespace Lunacy
 
 			if(KeyboardState.IsKeyDown(Keys.LeftShift)) moveSpeed *= 10;
 
-			if(KeyboardState.IsKeyDown(Keys.W)) Camera.transform.Position += Camera.transform.Forward * (float)args.Time * moveSpeed;
-			if(KeyboardState.IsKeyDown(Keys.A)) Camera.transform.Position += Camera.transform.Right * (float)args.Time * moveSpeed;
-			if(KeyboardState.IsKeyDown(Keys.S)) Camera.transform.Position -= Camera.transform.Forward * (float)args.Time * moveSpeed;
-			if(KeyboardState.IsKeyDown(Keys.D)) Camera.transform.Position -= Camera.transform.Right * (float)args.Time * moveSpeed;
+			if(KeyboardState.IsKeyDown(Keys.W)) Camera.transform.position += Camera.transform.Forward * (float)args.Time * moveSpeed;
+			if(KeyboardState.IsKeyDown(Keys.A)) Camera.transform.position += Camera.transform.Right * (float)args.Time * moveSpeed;
+			if(KeyboardState.IsKeyDown(Keys.S)) Camera.transform.position -= Camera.transform.Forward * (float)args.Time * moveSpeed;
+			if(KeyboardState.IsKeyDown(Keys.D)) Camera.transform.position -= Camera.transform.Right * (float)args.Time * moveSpeed;
 
 			CursorGrabbed = MouseState.IsButtonDown(MouseButton.Right);
 
@@ -97,7 +94,7 @@ namespace Lunacy
 
 				freecamLocal.X = MathHelper.Clamp(freecamLocal.X, -MathHelper.PiOver2 + 0.0001f, MathHelper.PiOver2 - 0.0001f);
 
-				Camera.transform.Rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
+				Camera.transform.rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
 			}
 			else
 			{
@@ -108,6 +105,13 @@ namespace Lunacy
 			Title = $"Lunacy Level Editor | {1 / args.Time}";
 
 			base.OnUpdateFrame(args);
+		}
+
+		protected override void OnTextInput(TextInputEventArgs e)
+		{
+			base.OnTextInput(e);
+			
+			gui.KeyPress(e.Unicode);
 		}
 
 		protected override void OnResize(ResizeEventArgs e)

@@ -37,7 +37,7 @@ namespace Lunacy
 			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
 			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
 		}
-		public Drawable(ref Zone.NewTFrag mesh)
+		public Drawable(ref CZone.NewTFrag mesh)
 		{
 			Prepare();
 			SetVertexPositions(mesh.vPositions);

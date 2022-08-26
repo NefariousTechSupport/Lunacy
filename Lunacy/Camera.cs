@@ -8,7 +8,7 @@ namespace Lunacy
 		{
 			get
 			{
-				return Matrix4.CreateTranslation(transform.Position) * Matrix4.CreateFromQuaternion(transform.Rotation);
+				return Matrix4.CreateTranslation(transform.position) * Matrix4.CreateFromQuaternion(transform.rotation);
 			}
 		}
 		public static Matrix4 ViewToClip;

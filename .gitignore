@@ -1,5 +1,6 @@
 *.obj
 *.dds
+*.dae
 .vscode
 .vs
 */bin

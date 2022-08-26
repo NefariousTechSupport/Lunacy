@@ -7,7 +7,8 @@ namespace Lunacy
 		public static EntityManager Singleton => lazy.Value;
 		public bool loadUfrags = false;
 
-
+		public List<Region> regions = new List<Region>();
+		public List<CZone> zones = new List<CZone>();
 		public Dictionary<string, List<Entity>> MobyHandles = new Dictionary<string, List<Entity>>();
 		public List<List<Entity>> TieInstances = new List<List<Entity>>();
 		public List<List<Entity>> TFrags = new List<List<Entity>>();
@@ -18,24 +19,42 @@ namespace Lunacy
 		{
 			for(int i = 0; i < gp.regions.Length; i++)
 			{
+				regions.Add(gp.regions[i]);
 				MobyHandles.Add(gp.regions[i].name, new List<Entity>());
 				KeyValuePair<ulong, Region.CMobyInstance>[] mobys = gp.regions[i].mobyInstances.ToArray();
 				for(ulong j = 0; j < (ulong)mobys.Length; j++)
 				{
 					MobyHandles[gp.regions[i].name].Add(new Entity(mobys[j].Value));
 				}
+				for(int j = 0; j < gp.regions[i].zones.Length; j++)
+				{
+					if(zones.Contains(gp.regions[i].zones[j])) continue;
+
+					CZone zone = gp.regions[i].zones[j];
+					zones.Add(zone);
+
+					TieInstances.Add(new List<Entity>());
+					KeyValuePair<ulong, CZone.CTieInstance>[] ties = zone.tieInstances.ToArray();
+					for(uint k = 0; k < ties.Length; k++)
+					{
+						TieInstances.Last().Add(new Entity(ties[k].Value));
+					}
+					TFrags.Add(new List<Entity>());
+					if(loadUfrags)
+					{
+						for(uint k = 0; k < gp.regions[i].zones[j].tfrags.Length; k++)
+						{
+							TFrags.Last().Add(new Entity(gp.regions[i].zones[j].tfrags[k]));
+						}
+					}
+				}
 			}
 
 			AssetManager.Singleton.ConsolidateMobys();
+			AssetManager.Singleton.ConsolidateTies();
 
-			for(int i = 0; i < gp.zones.Length; i++)
+			/*for(int i = 0; i < gp.zones.Length; i++)
 			{
-				TieInstances.Add(new List<Entity>());
-				KeyValuePair<ulong, Zone.CTieInstance>[] ties = gp.zones[i].tieInstances.ToArray();
-				for(ulong j = 0; j < (ulong)ties.Length; j++)
-				{
-					TieInstances[i].Add(new Entity(ties[j].Value));
-				}
 				TFrags.Add(new List<Entity>());
 				if(loadUfrags)
 				{
@@ -44,9 +63,7 @@ namespace Lunacy
 						TFrags[i].Add(new Entity(gp.zones[i].tfrags[j]));
 					}
 				}
-			}
-
-			AssetManager.Singleton.ConsolidateTies();
+			}*/
 		}
 
 		private void ReallocEntities()
@@ -112,9 +129,9 @@ namespace Lunacy
 					);
 			name = mobyInstance.name;
 			(drawable as DrawableListList).AddDrawCall(transform);
-			boundingSphere = new Vector4(Utils.ToOpenTKVector3(mobyInstance.moby.boundingSpherePosition) + transform.Position, mobyInstance.moby.boundingSphereRadius * mobyInstance.scale);
+			boundingSphere = new Vector4(Utils.ToOpenTKVector3(mobyInstance.moby.boundingSpherePosition) + transform.position, mobyInstance.moby.boundingSphereRadius * mobyInstance.scale);
 		}
-		public Entity(Zone.CTieInstance tieInstance)
+		public Entity(CZone.CTieInstance tieInstance)
 		{
 			instance = tieInstance;
 			drawable = AssetManager.Singleton.ties[tieInstance.tie.id];
@@ -123,12 +140,12 @@ namespace Lunacy
 			(drawable as DrawableList).AddDrawCall(transform);
 			boundingSphere = new Vector4(Utils.ToOpenTKVector3(tieInstance.boundingPosition), tieInstance.boundingRadius);
 		}
-		public Entity(Zone.NewTFrag tfrag)
+		public Entity(CZone.NewTFrag tfrag)
 		{
 			instance = tfrag;
 			drawable = new Drawable(ref tfrag);
 			name = "hi";
-			//transform = new Transform(Utils.ToOpenTKVector3(tfrag.transformation), Vector3.Zero, Vector3.One);
+			//transform = new Transform(Utils.ToOpenTKVector3(tfrag.position), Vector3.Zero, Vector3.One);
 			Matrix4 transposed = Utils.ToOpenTKMatrix4(tfrag.transformation);
 			//transform = new Transform(transposed);
 			transform = new Transform(new Matrix4(
@@ -141,7 +158,7 @@ namespace Lunacy
 
 		public void SetPosition(Vector3 position)
 		{
-			transform.Position = position;
+			transform.position = position;
 			if(drawable is DrawableListList dll) dll.UpdateTransform(transform);
 			else if(drawable is DrawableList dl) dl.UpdateTransform(transform);
 		}
