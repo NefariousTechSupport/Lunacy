@@ -9,6 +9,7 @@ namespace LibLunacy
 			[FileOffset(0x00)] public uint albedoOffset;
 			[FileOffset(0x04)] public uint normalOffset;
 			[FileOffset(0x08)] public uint expensiveOffset;
+			[FileOffset(0x11)] public byte renderingMode;
 		}
 		[FileStructure(0x80)]
 		public struct NewShader
@@ -16,6 +17,7 @@ namespace LibLunacy
 			[FileOffset(0x00)] public uint albedoIndex;
 			[FileOffset(0x04)] public uint normalIndex;
 			[FileOffset(0x08)] public uint expensiveIndex;
+			[FileOffset(0x21)] public byte renderingMode;
 		}
 		[FileStructure(0x40)]
 		public struct NewReferences
@@ -31,11 +33,18 @@ namespace LibLunacy
 			public uint TextureCount => 3;
 		}
 
+		public enum RenderingMode : byte
+		{
+			Opaque = 0,
+			AlphaBlend = 6,
+		}
 		IGFile file;
+
 
 		public CTexture? albedo = null;
 		public CTexture? normal = null;
 		public CTexture? expensive = null;
+		public RenderingMode renderingMode;
 
 		public CShader(IGFile file, AssetLoader al, uint index = 0)
 		{
@@ -80,6 +89,7 @@ namespace LibLunacy
 						expensive.name = name.expensiveName;
 					}
 				}
+				renderingMode = (RenderingMode)oshader.renderingMode;
 			}
 			else
 			{
@@ -104,6 +114,8 @@ namespace LibLunacy
 					expensive = al.textures[refs.expensiveTuid];
 					expensive.name = refs.expensiveName;
 				}
+
+				renderingMode = (RenderingMode)nshader.renderingMode;
 			}
 		}
 	}

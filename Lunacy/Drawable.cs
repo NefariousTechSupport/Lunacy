@@ -12,9 +12,12 @@ namespace Lunacy
 		int VAO;
 		int EBO;
 		int indexCount;
-		Material material;
+		public Material material { get; private set; }
 
-		public Drawable(){}
+		public Drawable()
+		{
+			Prepare();
+		}
 		public Drawable(CMoby moby, CMoby.MobyMesh mesh)
 		{
 			Prepare();
@@ -23,7 +26,15 @@ namespace Lunacy
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
 			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
-			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
+			if(tex == null && mesh.shader.albedo != null) Console.Error.WriteLine($"WARNING: FAILED TO FIND TEXTURE {mesh.shader.albedo.id.ToString("X08")} AKA {mesh.shader.albedo.name}");
+			if(mesh.shader.renderingMode != CShader.RenderingMode.AlphaBlend)
+			{
+				SetMaterial(new Material(MaterialManager.materials["stdv;solidf"], tex, mesh.shader.renderingMode));
+			}
+			else
+			{
+				SetMaterial(new Material(MaterialManager.materials["stdv;transparentf"], tex, mesh.shader.renderingMode));
+			}
 		}
 		public Drawable(CTie tie, CTie.TieMesh mesh)
 		{
@@ -35,7 +46,14 @@ namespace Lunacy
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
 			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
-			SetMaterial(new Material(MaterialManager.materials["stdv;ulitf"], tex));
+			if(mesh.shader.renderingMode != CShader.RenderingMode.AlphaBlend)
+			{
+				SetMaterial(new Material(MaterialManager.materials["stdv;solidf"], tex, mesh.shader.renderingMode));
+			}
+			else
+			{
+				SetMaterial(new Material(MaterialManager.materials["stdv;transparentf"], tex, mesh.shader.renderingMode));
+			}
 		}
 		public Drawable(ref CZone.NewTFrag mesh)
 		{
@@ -43,7 +61,7 @@ namespace Lunacy
 			SetVertexPositions(mesh.vPositions);
 			SetIndices(mesh.indices);
 			//Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
-			SetMaterial(new Material(MaterialManager.materials["stdv;whitef"], null));
+			SetMaterial(new Material(MaterialManager.materials["stdv;whitef"], null, CShader.RenderingMode.Opaque));
 		}
 
 		public void Prepare()

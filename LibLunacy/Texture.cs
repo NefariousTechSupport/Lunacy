@@ -99,12 +99,32 @@ namespace LibLunacy
 				if(texstream != null && ots.Any(x => x.index == index))
 				{
 					texstream.Seek(ots.First(x => x.index == index).offset, SeekOrigin.Begin);
-					texstream.Read(data);
+					if((format == TexFormat.DXT1 || format == TexFormat.DXT3 || format == TexFormat.DXT5) && (otr.formatBitField & 0x2000) == 0)
+					{
+						texstream.Read(data);
+					}
+					else
+					{
+						width = 0;
+						height = 0;
+						//Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
+						//Unswizzle(texstream, ref data, width, height, format);
+					}
 				}
 				else
 				{
 					textures.Seek(otr.offset, SeekOrigin.Begin);
-					textures.Read(data);
+					if((format == TexFormat.DXT1 || format == TexFormat.DXT3 || format == TexFormat.DXT5) && (otr.formatBitField & 0x2000) == 0)
+					{
+						textures.Read(data);
+					}
+					else
+					{
+						width = 0;
+						height = 0;
+						//Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
+						//Unswizzle(textures, ref data, width, height, format);
+					}
 				}
 
 				id = (uint)(texrefs.offset + index * 0x20);
@@ -126,14 +146,96 @@ namespace LibLunacy
 				width = 1 << meta.widthPow;
 				height = 1 << meta.heightPow;
 				mipmapCount = 1;//meta.mipmapCount;
-				format = (TexFormat)meta.format;
+				if(meta.format == 6 || meta.format == 7 || meta.format == 8 || meta.format == 5 || meta.format == 0x0B)
+				{
+					format = (TexFormat)meta.format;
+				}
+				else
+				{
+					Console.Error.WriteLine($"WARNING: TEXTURE {hmipPtr.tuid.ToString("X016")} HAS UNKNOWN FORMAT {meta.format.ToString("X02")}, SKIPPING...");
+					goto errorcleanup;
+				}
+
+				if(hmipPtr.length == 0)
+				{
+					Console.Error.WriteLine($"WARNING: HMIP {hmipPtr.tuid.ToString("X016")} HAS SIZE 0, SKIPPING...");
+					goto errorcleanup;
+				}
 
 				data = new byte[hmipPtr.length];
 				highmips.Seek(hmipPtr.offset, SeekOrigin.Begin);
-				highmips.Read(data);
 
+				if(format == TexFormat.DXT1 || format == TexFormat.DXT3 || format == TexFormat.DXT5)
+				{
+					highmips.Read(data);
+				}
+				else if (format == TexFormat.A8R8G8B8 || format == TexFormat.R5G6B5)
+				{
+					Console.WriteLine($"Unswizzling {hmipPtr.tuid.ToString("X016")}");
+					Unswizzle(highmips, ref data, width, height, format);
+				}
+
+				goto finish;
+
+				errorcleanup:
+				width = 0;
+				height = 0;
+
+				finish:
 				id = (uint)hmipPtr.tuid;
 			}
+		}
+
+		private void Unswizzle(Stream s, ref byte[] b, int width, int height, TexFormat format)
+		{
+			if(format == TexFormat.DXT1 || format == TexFormat.DXT3 || format == TexFormat.DXT5) throw new InvalidOperationException("DXT textures aren't swizzled");
+			if(b.Length == 0) throw new ArgumentException("Array too small");
+
+			long ogPos = s.Position;
+
+			int pixelSize = 0;
+			     if(format == TexFormat.R5G6B5)   pixelSize = 2;
+			else if(format == TexFormat.A8R8G8B8) pixelSize = 4;
+
+			byte[] pixel = new byte[pixelSize];
+
+			for(int t = 0; t < height * width / (pixelSize * pixelSize); t++)
+			{
+				int index = Morton(t, width, height);
+				s.Read(pixel);
+				Array.Reverse(pixel);
+				Array.Copy(pixel, 0, b, index * pixelSize, pixelSize);
+			}
+		}
+
+		//Stolen from RawTex
+		private int Morton(int t, int x, int y)
+		{
+			int num2;
+			int num = num2 = 1;
+			int num3 = t;
+			int num4 = x;
+			int num5 = y;
+			int num6 = 0;
+			int num7 = 0;
+			while (num4 > 1 || num5 > 1)
+			{
+				if (num4 > 1)
+				{
+					num6 += num2 * (num3 & 1);
+					num3 >>= 1;
+					num2 *= 2;
+					num4 >>= 1;
+				}
+				if (num5 > 1)
+				{
+					num7 += num * (num3 & 1);
+					num3 >>= 1;
+					num *= 2;
+					num5 >>= 1;
+				}
+			}
+			return num7 * x + num6;
 		}
 
 		private static readonly byte[] ddsHeader = new byte[0x80]

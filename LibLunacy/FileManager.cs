@@ -1,3 +1,5 @@
+//#define READ_TO_MS
+
 namespace LibLunacy
 {
 	//Files are loaded here
@@ -60,10 +62,17 @@ namespace LibLunacy
 			fs.Close();*/
 
 			//The following doesn't use as much ram but holds onto files
-			FileStream? ms = null;
+			Stream? ms = null;
 			if(File.Exists($"{folderPath}/{name}"))
 			{
+#if READ_TO_MS
+			FileStream fs = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
+			ms = new MemoryStream((int)fs.Length);
+			fs.CopyTo(ms);
+			fs.Close();
+#else
 				ms = File.Open($"{folderPath}/{name}", FileMode.Open, FileAccess.Read);
+#endif
 			}
 
 			if(isRaw)

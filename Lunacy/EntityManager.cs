@@ -15,6 +15,8 @@ namespace Lunacy
 
 		List<Entity> mobys = new List<Entity>();
 
+		List<Drawable> transparentDrawables = new List<Drawable>();
+		List<Drawable> opaqueDrawables = new List<Drawable>();
 		public void LoadGameplay(Gameplay gp)
 		{
 			for(int i = 0; i < gp.regions.Length; i++)
@@ -53,6 +55,8 @@ namespace Lunacy
 			AssetManager.Singleton.ConsolidateMobys();
 			AssetManager.Singleton.ConsolidateTies();
 
+			ReallocDrawableLists();
+
 			/*for(int i = 0; i < gp.zones.Length; i++)
 			{
 				TFrags.Add(new List<Entity>());
@@ -74,34 +78,69 @@ namespace Lunacy
 			}
 		}
 
-		public void Render()
+		private void ReallocDrawableLists()
 		{
-			/*if(MobyHandles.Sum(x => x.Value.Count) != mobys.Count)
-			{
-				ReallocEntities();
-			}
-			mobys = mobys.OrderByDescending(x => (x.transform.Position + Camera.transform.Position).LengthSquared).ToList();
-			for(int i = 0; i < mobys.Count; i++)
-			{
-				mobys[i].Draw();
-			}*/
+			transparentDrawables.Clear();
+			opaqueDrawables.Clear();
+
 			KeyValuePair<ulong, DrawableListList>[] mobys = AssetManager.Singleton.mobys.ToArray();
 			for(int i = 0; i < mobys.Length; i++)
 			{
-				mobys[i].Value.Draw();
-
+				List<DrawableList> drawableLists = mobys[i].Value;
+				for(int j = 0; j < drawableLists.Count; j++)
+				{
+					for(int k = 0; k < drawableLists[j].Count; k++)
+					{
+						if(drawableLists[j][k].material.renderingMode != CShader.RenderingMode.AlphaBlend)
+						{
+							opaqueDrawables.Add(drawableLists[j][k]);
+						}
+						else
+						{
+							transparentDrawables.Add(drawableLists[j][k]);
+						}
+					}
+				}
 			}
+
 			KeyValuePair<ulong, DrawableList>[] ties = AssetManager.Singleton.ties.ToArray();
 			for(int i = 0; i < ties.Length; i++)
 			{
-				ties[i].Value.Draw();
+				List<Drawable> drawables = ties[i].Value;
+				for(int j = 0; j < drawables.Count; j++)
+				{
+					if(drawables[j].material.renderingMode != CShader.RenderingMode.AlphaBlend)
+					{
+						opaqueDrawables.Add(drawables[j]);
+					}
+					else
+					{
+						transparentDrawables.Add(drawables[j]);
+					}
+				}
 			}
+
 			foreach(List<Entity> tfrag in TFrags)
 			{
 				for(int i = 0; i < tfrag.Count; i++)
 				{
-					tfrag[i].Draw();
+					opaqueDrawables.Add(tfrag[i].drawable as Drawable);
 				}
+			}
+		}
+
+		public void RenderOpaque()
+		{
+			for(int i = 0; i < opaqueDrawables.Count; i++)
+			{
+				opaqueDrawables[i].Draw();
+			}
+		}
+		public void RenderTransparent()
+		{
+			for(int i = 0; i < transparentDrawables.Count; i++)
+			{
+				transparentDrawables[i].Draw();
 			}
 		}
 	}

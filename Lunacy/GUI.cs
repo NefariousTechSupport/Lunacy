@@ -9,8 +9,6 @@ namespace Lunacy
 
 		Entity selectedEntity = null;
 
-		public static int framebuffer;
-		private static int framebufferTexture;
 		bool raycast = false;
 
 		public GUI(Window wnd)
@@ -22,24 +20,6 @@ namespace Lunacy
 		public void Resize()
 		{
 			controller.WindowResized(wnd.ClientSize.X, wnd.ClientSize.Y);
-		}
-
-		public static void InitializeFramebuffer()
-		{
-			framebuffer = GL.GenFramebuffer();
-			GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer);
-			framebufferTexture = GL.GenTexture();
-			GL.BindTexture(TextureTarget.Texture2D, framebufferTexture);
-			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, 1280, 720, 0, PixelFormat.Rgb, PixelType.UnsignedShort, IntPtr.Zero);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-			GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, framebufferTexture, 0);
-
-			if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
-			{
-				throw new Exception("Framebuffer incomplete");
-			}
-			GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 		}
 
 		public void FrameBegin(double delta)

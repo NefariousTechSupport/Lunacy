@@ -6,14 +6,25 @@ namespace Lunacy
 		Texture? albedo;
 		public PrimitiveType drawType;
 		public uint numUsing = 0;
+		public CShader.RenderingMode renderingMode = CShader.RenderingMode.Opaque;
 
 		Dictionary<string, int> uniforms = new Dictionary<string, int>();
 
-		public Material(int handle, Texture? albedo = null, PrimitiveType primitiveType = PrimitiveType.Triangles)
+		public bool HasTransparency
+		{
+			get
+			{
+				if(albedo == null) return false;
+				return albedo.format == CTexture.TexFormat.DXT3 || albedo.format == CTexture.TexFormat.DXT5 || albedo.format == CTexture.TexFormat.A8R8G8B8;
+			}
+		}
+
+		public Material(int handle, Texture? albedo = null, CShader.RenderingMode renderingMode = CShader.RenderingMode.Opaque, PrimitiveType primitiveType = PrimitiveType.Triangles)
 		{
 			this.albedo = albedo;
 			this.programId = handle;
 			this.drawType = primitiveType;
+			this.renderingMode = renderingMode;
 		}
 
 		public void Use()
