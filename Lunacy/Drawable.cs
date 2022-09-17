@@ -25,16 +25,7 @@ namespace Lunacy
 			SetVertexPositions(vPositions);
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
-			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
-			if(tex == null && mesh.shader.albedo != null) Console.Error.WriteLine($"WARNING: FAILED TO FIND TEXTURE {mesh.shader.albedo.id.ToString("X08")} AKA {mesh.shader.albedo.name}");
-			if(mesh.shader.renderingMode != CShader.RenderingMode.AlphaBlend)
-			{
-				SetMaterial(new Material(MaterialManager.materials["stdv;solidf"], tex, mesh.shader.renderingMode));
-			}
-			else
-			{
-				SetMaterial(new Material(MaterialManager.materials["stdv;transparentf"], tex, mesh.shader.renderingMode));
-			}
+			SetMaterial(new Material(mesh.shader));
 		}
 		public Drawable(CTie tie, CTie.TieMesh mesh)
 		{
@@ -45,15 +36,7 @@ namespace Lunacy
 			SetVertexPositions(vPositions);
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
-			Texture? tex = (mesh.shader.albedo == null ? null : AssetManager.Singleton.textures[mesh.shader.albedo.id]);
-			if(mesh.shader.renderingMode != CShader.RenderingMode.AlphaBlend)
-			{
-				SetMaterial(new Material(MaterialManager.materials["stdv;solidf"], tex, mesh.shader.renderingMode));
-			}
-			else
-			{
-				SetMaterial(new Material(MaterialManager.materials["stdv;transparentf"], tex, mesh.shader.renderingMode));
-			}
+			SetMaterial(new Material(mesh.shader));
 		}
 		public Drawable(ref CZone.NewTFrag mesh)
 		{

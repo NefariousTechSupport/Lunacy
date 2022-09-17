@@ -7,6 +7,7 @@ namespace Lunacy
 		public PrimitiveType drawType;
 		public uint numUsing = 0;
 		public CShader.RenderingMode renderingMode = CShader.RenderingMode.Opaque;
+		public CShader asset;
 
 		Dictionary<string, int> uniforms = new Dictionary<string, int>();
 
@@ -26,6 +27,22 @@ namespace Lunacy
 			this.drawType = primitiveType;
 			this.renderingMode = renderingMode;
 		}
+		public Material(CShader asset)
+		{
+			this.asset = asset;
+			Texture? tex = (asset.albedo == null ? null : AssetManager.Singleton.textures[asset.albedo.id]);
+			if(tex == null && asset.albedo != null) Console.Error.WriteLine($"WARNING: FAILED TO FIND TEXTURE {asset.albedo.id.ToString("X08")} AKA {asset.albedo.name}");
+			if(asset.renderingMode != CShader.RenderingMode.AlphaBlend)
+			{
+				this.programId = MaterialManager.materials["stdv;solidf"];
+			}
+			else
+			{
+				this.programId = MaterialManager.materials["stdv;transparentf"];
+			}
+			this.albedo = tex;
+			this.drawType = PrimitiveType.Triangles;
+		}
 
 		public void Use()
 		{
@@ -35,6 +52,14 @@ namespace Lunacy
 				albedo.Use();
 				SetInt("albedo", 0);
 				SetBool("useTexture", true);
+				if(asset.renderingMode == CShader.RenderingMode.AlphaClip)
+				{
+					SetFloat("alphaClip", asset.alphaClip);
+				}
+				else
+				{
+					SetFloat("alphaClip", 0);
+				}
 			}
 			else
 			{

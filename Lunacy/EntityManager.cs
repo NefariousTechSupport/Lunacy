@@ -91,7 +91,7 @@ namespace Lunacy
 				{
 					for(int k = 0; k < drawableLists[j].Count; k++)
 					{
-						if(drawableLists[j][k].material.renderingMode != CShader.RenderingMode.AlphaBlend)
+						if(drawableLists[j][k].material.asset.renderingMode != CShader.RenderingMode.AlphaBlend)
 						{
 							opaqueDrawables.Add(drawableLists[j][k]);
 						}
@@ -109,7 +109,7 @@ namespace Lunacy
 				List<Drawable> drawables = ties[i].Value;
 				for(int j = 0; j < drawables.Count; j++)
 				{
-					if(drawables[j].material.renderingMode != CShader.RenderingMode.AlphaBlend)
+					if(drawables[j].material.asset.renderingMode != CShader.RenderingMode.AlphaBlend)
 					{
 						opaqueDrawables.Add(drawables[j]);
 					}

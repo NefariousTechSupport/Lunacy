@@ -10,6 +10,7 @@ namespace LibLunacy
 			[FileOffset(0x04)] public uint normalOffset;
 			[FileOffset(0x08)] public uint expensiveOffset;
 			[FileOffset(0x11)] public byte renderingMode;
+			[FileOffset(0x20)] public float alphaClip;
 		}
 		[FileStructure(0x80)]
 		public struct NewShader
@@ -18,6 +19,7 @@ namespace LibLunacy
 			[FileOffset(0x04)] public uint normalIndex;
 			[FileOffset(0x08)] public uint expensiveIndex;
 			[FileOffset(0x21)] public byte renderingMode;
+			[FileOffset(0x30)] public float alphaClip;
 		}
 		[FileStructure(0x40)]
 		public struct NewReferences
@@ -36,6 +38,7 @@ namespace LibLunacy
 		public enum RenderingMode : byte
 		{
 			Opaque = 0,
+			AlphaClip = 4,
 			AlphaBlend = 6,
 		}
 		IGFile file;
@@ -45,6 +48,7 @@ namespace LibLunacy
 		public CTexture? normal = null;
 		public CTexture? expensive = null;
 		public RenderingMode renderingMode;
+		public float alphaClip;
 
 		public CShader(IGFile file, AssetLoader al, uint index = 0)
 		{
@@ -90,6 +94,7 @@ namespace LibLunacy
 					}
 				}
 				renderingMode = (RenderingMode)oshader.renderingMode;
+				alphaClip = oshader.alphaClip;
 			}
 			else
 			{
@@ -116,6 +121,7 @@ namespace LibLunacy
 				}
 
 				renderingMode = (RenderingMode)nshader.renderingMode;
+				alphaClip = nshader.alphaClip;
 			}
 		}
 	}

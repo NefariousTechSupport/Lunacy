@@ -258,6 +258,20 @@ namespace Lunacy
 			GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
 			Camera.CreatePerspective(MathHelper.PiOver2, ClientSize.X / (float)ClientSize.Y);
 			gui.Resize();
+
+			GL.BindTexture(TextureTarget.Texture2D, opaqueTex);
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, ClientSize.X, ClientSize.Y, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+
+			GL.BindTexture(TextureTarget.Texture2D, depthTex);
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, ClientSize.X, ClientSize.Y, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
+
+			GL.BindTexture(TextureTarget.Texture2D, accumTex);
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, ClientSize.X, ClientSize.Y, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+
+			GL.BindTexture(TextureTarget.Texture2D, revealTex);
+			GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, ClientSize.X, ClientSize.Y, 0, PixelFormat.Red, PixelType.Float, IntPtr.Zero);
+
+			GL.BindTexture(TextureTarget.Texture2D, 0);
 		}
 
 		protected override void OnClosing(CancelEventArgs e)

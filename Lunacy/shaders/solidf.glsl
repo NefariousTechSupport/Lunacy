@@ -6,12 +6,14 @@ in vec2 UVs;
 
 uniform sampler2D albedo;
 uniform bool useTexture;
+uniform float alphaClip;
 
 void main()
 {
 	if(useTexture)
 	{
 		color = texture(albedo, UVs);
+		if(color.a < alphaClip) discard;
 	}
 	else
 	{
