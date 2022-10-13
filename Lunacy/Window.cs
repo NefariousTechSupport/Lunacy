@@ -53,6 +53,7 @@ namespace Lunacy
 			MaterialManager.LoadMaterial("stdv;transparentf", "shaders/stdv.glsl", "shaders/transparentf.glsl");
 			MaterialManager.LoadMaterial("stdv;solidf", "shaders/stdv.glsl", "shaders/solidf.glsl");
 			MaterialManager.LoadMaterial("stdv;whitef", "shaders/stdvsingle.glsl", "shaders/whitef.glsl");
+			MaterialManager.LoadMaterial("stdv;volumef", "shaders/stdv.glsl", "shaders/volumef.glsl");
 			MaterialManager.LoadMaterial("stdv;pickingf", "shaders/stdv.glsl", "shaders/pickingf.glsl");
 			MaterialManager.LoadMaterial("screenv;compositef", "shaders/screenv.glsl", "shaders/compositef.glsl");
 			MaterialManager.LoadMaterial("screenv;screenf", "shaders/screenv.glsl", "shaders/screenf.glsl");
@@ -231,7 +232,7 @@ namespace Lunacy
 
 				freecamLocal.X = MathHelper.Clamp(freecamLocal.X, -MathHelper.PiOver2 + 0.0001f, MathHelper.PiOver2 - 0.0001f);
 
-				Camera.transform.rotation = Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y);
+				Camera.transform.SetRotation(Quaternion.FromAxisAngle(Vector3.UnitX, freecamLocal.X) * Quaternion.FromAxisAngle(Vector3.UnitY, freecamLocal.Y));
 			}
 			else
 			{

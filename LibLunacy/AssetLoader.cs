@@ -10,6 +10,7 @@ namespace LibLunacy
 		public Dictionary<ulong, CShader> shaders = new Dictionary<ulong, CShader>();
 		public Dictionary<uint, CTexture> textures = new Dictionary<uint, CTexture>();
 		public Dictionary<ulong, CZone> zones = new Dictionary<ulong, CZone>();
+		public List<CShader> shaderDB = new List<CShader>();							//Copy of shaders except it's only used on old engine, should probably find a better way to do this
 
 		public AssetLoader(FileManager fileManager)
 		{
@@ -107,7 +108,8 @@ namespace LibLunacy
 			IGFile.SectionHeader shaderSection = main.QuerySection(0x5000);
 			for(int i = 0; i < shaderSection.count; i++)
 			{
-				shaders.Add((ulong)i, new CShader(main, this, (uint)i));
+				shaderDB.Add(new CShader(main, this, (uint)i));
+				shaders.Add((ulong)i, shaderDB[i]);
 			}
 		}
 		private void LoadShadersNew()

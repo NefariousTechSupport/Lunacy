@@ -25,6 +25,7 @@ namespace LibLunacy
 		public struct NewReferences
 		{
 			[FileOffset(0x00)] public ulong thisTuid;
+			[FileOffset(0x08), Reference] public string thisName;
 			[FileOffset(0x10)] public uint albedoTuid;
 			[FileOffset(0x14)] public uint normalTuid;
 			[FileOffset(0x18)] public uint expensiveTuid;
@@ -49,6 +50,7 @@ namespace LibLunacy
 		public CTexture? expensive = null;
 		public RenderingMode renderingMode;
 		public float alphaClip;
+		public string name;
 
 		public CShader(IGFile file, AssetLoader al, uint index = 0)
 		{
@@ -62,11 +64,11 @@ namespace LibLunacy
 			{
 				OldShader oshader = FileUtils.ReadStructure<OldShader>(file.sh);
 
-				DebugFile.DebugShaderName name = new DebugFile.DebugShaderName();
+				DebugFile.DebugShaderName shaderName = new DebugFile.DebugShaderName();
 
 				if(al.fm.debug != null)
 				{
-					name = al.fm.debug.GetShaderName(index);
+					shaderName = al.fm.debug.GetShaderName(index);
 				}
 
 				if(oshader.albedoOffset != 0)
@@ -74,7 +76,7 @@ namespace LibLunacy
 					albedo = al.textures[oshader.albedoOffset];
 					if(al.fm.debug != null)
 					{
-						albedo.name = name.albedoName;
+						albedo.name = shaderName.albedoName;
 					}
 				}
 				if(oshader.normalOffset != 0)
@@ -82,7 +84,7 @@ namespace LibLunacy
 					normal = al.textures[oshader.normalOffset];
 					if(al.fm.debug != null)
 					{
-						normal.name = name.normalName;
+						normal.name = shaderName.normalName;
 					}
 				}
 				if(oshader.expensiveOffset != 0)
@@ -90,11 +92,12 @@ namespace LibLunacy
 					expensive = al.textures[oshader.expensiveOffset];
 					if(al.fm.debug != null)
 					{
-						expensive.name = name.expensiveName;
+						expensive.name = shaderName.expensiveName;
 					}
 				}
 				renderingMode = (RenderingMode)oshader.renderingMode;
 				alphaClip = oshader.alphaClip;
+				name = shaderName.shaderName;
 			}
 			else
 			{
@@ -119,6 +122,7 @@ namespace LibLunacy
 					expensive = al.textures[refs.expensiveTuid];
 					expensive.name = refs.expensiveName;
 				}
+				name = refs.thisName;
 
 				renderingMode = (RenderingMode)nshader.renderingMode;
 				alphaClip = nshader.alphaClip;

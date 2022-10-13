@@ -49,7 +49,7 @@ namespace LibLunacy
 			[FileOffset(0x00)] public Vector3 boundingSpherePosition;
 			[FileOffset(0x0C)] public float boundingSphereRadius;
 			[FileOffset(0x18)] public ushort bangleCount1;
-			[FileOffset(0x1A)] public ushort bangleCount2;
+			[FileOffset(0x1A)] public ushort bangleCount2;		//Likely LOD count, unsure tho since they reference the exact same verts and indices, perhaps done dynamically?
 			[FileOffset(0x24), Reference("BangleCount")] public Bangle[] bangles;
 			[FileOffset(0x70)] public float scale;
 			[FileOffset(0xB0)] public ulong tuid;
@@ -66,6 +66,7 @@ namespace LibLunacy
 		public float boundingSphereRadius;
 		StreamHelper vertexStream;
 		StreamHelper indexStream;
+		public List<CShader> shaderDB { get; private set; }		//On the old engine, there's a global shaderDB. On the new engine, it's per moby/tie/shrubmaybe/zonemaybe
 
 		public uint MetadataCount
 		{
@@ -110,6 +111,9 @@ namespace LibLunacy
 				MemoryStream indexms = new MemoryStream(file.sh.ReadBytes(indexsection.length));
 				indexStream = new StreamHelper(indexms, file.sh._endianness);
 
+				shaderDB = ReadShaderDB(al);
+				if(name.Contains("heckler"))
+					Console.Write("");
 				id = nmoby.tuid;
 			}
 			else
@@ -163,6 +167,8 @@ namespace LibLunacy
 				vertexStream = new StreamHelper(vertexms, file.sh._endianness);
 				indexStream = new StreamHelper(indexms, file.sh._endianness);
 
+				shaderDB = al.shaderDB;
+
 				id = index;
 
 				if(al.fm.debug != null) name = al.fm.debug.GetMobyPrototypeName(index).name;
@@ -170,6 +176,20 @@ namespace LibLunacy
 			}
 
 			LoadDependancies(al);
+		}
+		//Function should NOT be used on old engine, it would work but it'd waste a lot of memory
+		private List<CShader> ReadShaderDB(AssetLoader al)
+		{
+			IGFile.SectionHeader shaderSection;
+			shaderSection = file.QuerySection(0x5600);
+			List<CShader> shaders = new List<CShader>((int)shaderSection.count);
+
+			for(uint i = 0; i < shaderSection.count; i++)
+			{
+				file.sh.Seek(shaderSection.offset + i * 8);
+				shaders.Add(al.shaders[file.sh.ReadUInt64()]);
+			}
+			return shaders;
 		}
 		public void GetBuffers(MobyMesh mesh, out uint[] indices, out float[] vPositions, out float[] vTexCoords)
 		{
@@ -208,32 +228,6 @@ namespace LibLunacy
 		}
 		public void LoadDependancies(AssetLoader al)
 		{
-			IGFile.SectionHeader shaderSection;
-			if(al.fm.isOld)
-			{
-				shaderSection = al.fm.igfiles["main.dat"].QuerySection(0x5000);
-			}
-			else
-			{
-				shaderSection = file.QuerySection(0x5600);
-			}
-			for(int i = 0; i < bangles.Length; i++)
-			{
-				for(int j = 0; j < bangles[i].count; j++)
-				{
-					uint shaderIndex = bangles[i].meshes[j].shaderIndex;
-
-					if(al.fm.isOld)
-					{
-						bangles[i].meshes[j].shader = al.shaders[shaderIndex];
-					}
-					else
-					{
-						file.sh.Seek(shaderSection.offset + shaderIndex * 8);
-						bangles[i].meshes[j].shader = al.shaders[file.sh.ReadUInt64()];
-					}
-				}
-			}
 		}
 
 		public void ExportToObj(string filePath)

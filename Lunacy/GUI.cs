@@ -128,9 +128,17 @@ namespace Lunacy
 		{
 			ImGui.Begin($"{selectedEntity.name} Properties");
 			bool posChanged = false;
+			bool rotChanged = false;
+			bool scaleChanged = false;
 			System.Numerics.Vector3 position = Utils.ToNumericsVector3(selectedEntity.transform.position);
-			if(ImGui.InputFloat3("Position: ", ref position)) posChanged = true;
+			System.Numerics.Vector3 rotation = Utils.ToNumericsVector3(selectedEntity.transform.eulerRotation * (180f / MathHelper.Pi));
+			System.Numerics.Vector3 scale = Utils.ToNumericsVector3(selectedEntity.transform.scale);
+			if(ImGui.InputFloat3("Position", ref position)) posChanged = true;
+			if(ImGui.InputFloat3("Rotation", ref rotation)) rotChanged = true;
+			if(ImGui.InputFloat3("Scale", ref scale)) scaleChanged = true;
 			if(posChanged) selectedEntity.SetPosition(Utils.ToOpenTKVector3(position));
+			if(rotChanged) selectedEntity.SetRotation(Utils.ToOpenTKVector3(rotation / (180f / MathHelper.Pi)));
+			if(scaleChanged) selectedEntity.SetScale(Utils.ToOpenTKVector3(scale));
 			ImGui.End();
 			//ImGui.ShowDemoWindow();
 		}

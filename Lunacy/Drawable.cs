@@ -25,7 +25,7 @@ namespace Lunacy
 			SetVertexPositions(vPositions);
 			SetVertexTexCoords(vTexCoords);
 			SetIndices(indices);
-			SetMaterial(new Material(mesh.shader));
+			SetMaterial(new Material(moby.shaderDB[mesh.shaderIndex]));
 		}
 		public Drawable(CTie tie, CTie.TieMesh mesh)
 		{

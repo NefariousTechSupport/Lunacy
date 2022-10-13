@@ -3,7 +3,8 @@ namespace Lunacy
 	public class Transform
 	{
 		public Vector3 position = Vector3.Zero;
-		public Quaternion rotation = Quaternion.Identity;
+		public Quaternion rotation { get; private set; }
+		public Vector3 eulerRotation { get; private set; }
 		public Vector3 scale = Vector3.One;
 
 		private Matrix4 modelMatrix;
@@ -38,14 +39,14 @@ namespace Lunacy
 		public Transform()
 		{
 			position = Vector3.Zero;	
-			rotation = Quaternion.Identity;
+			SetRotation(Vector3.Zero);
 			scale = Vector3.One;	
 		}
 
 		public Transform(Vector3 position, Vector3 rotation, Vector3 scale)
 		{
 			this.position = position;
-			this.rotation = Quaternion.FromAxisAngle(Vector3.UnitZ, rotation.Z) * Quaternion.FromAxisAngle(Vector3.UnitY, rotation.Y) * Quaternion.FromAxisAngle(Vector3.UnitX, rotation.X);
+			SetRotation(rotation);
 			this.scale = scale;
 		}
 		public Transform(Matrix4 mat)
@@ -54,8 +55,23 @@ namespace Lunacy
 			modelMatrix = mat;
 			position = mat.ExtractTranslation();
 			scale = mat.ExtractScale();
-			rotation = mat.ExtractRotation();
+			Quaternion quatRotation = mat.ExtractRotation();
+			quatRotation.ToEulerAngles(out Vector3 tempEulers);
+			SetRotation(tempEulers);
 		}
+		
+		public void SetRotation(Quaternion quaternion)
+		{
+			rotation = quaternion;
+			rotation.ToEulerAngles(out Vector3 tempEulers);
+			eulerRotation = tempEulers;
+		}
+		public void SetRotation(Vector3 eulers)
+		{
+			eulerRotation = eulers;
+			rotation = Quaternion.FromAxisAngle(Vector3.UnitZ, eulerRotation.Z) * Quaternion.FromAxisAngle(Vector3.UnitY, eulerRotation.Y) * Quaternion.FromAxisAngle(Vector3.UnitX, eulerRotation.X);
+		}
+
 		public Matrix4 GetLocalToWorldMatrix()
 		{
 			if(useMatrix) return modelMatrix;

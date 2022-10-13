@@ -280,6 +280,8 @@ namespace LibLunacy
 			dst.Write(BitConverter.GetBytes((uint)height), 0x00, 0x04);
 			dst.Write(BitConverter.GetBytes((uint)width), 0x00, 0x04);
 			dst.Write(BitConverter.GetBytes(HighmipSize), 0x00, 0x04);
+			dst.Seek(0x1C, SeekOrigin.Begin);
+			dst.Write(BitConverter.GetBytes((uint)1), 0x00, 0x04);
 			dst.Seek(0x57, SeekOrigin.Begin);
 			switch(format)
 			{

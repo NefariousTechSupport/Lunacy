@@ -201,6 +201,18 @@ namespace Lunacy
 			if(drawable is DrawableListList dll) dll.UpdateTransform(transform);
 			else if(drawable is DrawableList dl) dl.UpdateTransform(transform);
 		}
+		public void SetRotation(Vector3 rotation)
+		{
+			transform.SetRotation(rotation);
+			if(drawable is DrawableListList dll) dll.UpdateTransform(transform);
+			else if(drawable is DrawableList dl) dl.UpdateTransform(transform);
+		}
+		public void SetScale(Vector3 scale)
+		{
+			transform.scale = scale;
+			if(drawable is DrawableListList dll) dll.UpdateTransform(transform);
+			else if(drawable is DrawableList dl) dl.UpdateTransform(transform);
+		}
 		public void Draw()
 		{
 			if(drawable is DrawableListList dll) dll.Draw();
