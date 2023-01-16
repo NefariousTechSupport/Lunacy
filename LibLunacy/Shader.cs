@@ -15,9 +15,9 @@ namespace LibLunacy
 		[FileStructure(0x80)]
 		public struct NewShader
 		{
-			[FileOffset(0x00)] public uint albedoIndex;
-			[FileOffset(0x04)] public uint normalIndex;
-			[FileOffset(0x08)] public uint expensiveIndex;
+			[FileOffset(0x00)] public int albedoIndex;
+			[FileOffset(0x04)] public int normalIndex;
+			[FileOffset(0x08)] public int expensiveIndex;
 			[FileOffset(0x21)] public byte renderingMode;
 			[FileOffset(0x30)] public float alphaClip;
 		}

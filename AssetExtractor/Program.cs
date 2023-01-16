@@ -13,14 +13,11 @@ namespace AssetExtractor
 			al.LoadAssets();
 			foreach(KeyValuePair<ulong, CMoby> mobys in al.mobys)
 			{
-				//if(!mobys.Value.name.Contains("heckler")) continue;
-				//string exportFilePath = $"{args[0]}/assets/mobys/{Path.ChangeExtension(mobys.Value.name, "obj")}";
+				if(!mobys.Value.name.Contains("talwyn")) continue;
 				string exportFilePath = $"{args[0]}/assets/mobys/{Path.ChangeExtension(mobys.Value.name, "dae")}";
 				Directory.CreateDirectory(Path.GetDirectoryName(exportFilePath));
 				Console.WriteLine(exportFilePath);
-				//mobys.Value.ExportToObj(exportFilePath);
 				ExportMobyToDae(mobys.Value, exportFilePath);
-				//return;
 			}
 			/*foreach(KeyValuePair<ulong, CTie> tie in al.ties)
 			{
@@ -158,8 +155,8 @@ namespace AssetExtractor
 
 			sb.AppendFormat("      <geometry id=\"{0}_{1}-mesh\" name=\"{0}_{1}\">\n", mobyName, bangleIndex);
 			      sb.Append("        <mesh>\n");
-				  sb.Append(WriteDaeSource(vPositions, "positions", moby, bangleIndex, mobyName, 3));
-				  sb.Append(WriteDaeSource(vTexCoords, "texcoords", moby, bangleIndex, mobyName, 2));
+			WriteDaeSource(sb, vPositions, "positions", moby, bangleIndex, mobyName, 3);
+			WriteDaeSource(sb, vTexCoords, "texcoords", moby, bangleIndex, mobyName, 2);
 			sb.AppendFormat("          <vertices id=\"{0}_{1}-mesh-vertices\">\n", mobyName, bangleIndex);
 			sb.AppendFormat("            <input semantic=\"POSITION\" source=\"#{0}_{1}-mesh-positions\"/>\n", mobyName, bangleIndex);
 			      sb.Append("          </vertices>\n");
@@ -212,9 +209,8 @@ namespace AssetExtractor
 			      sb.Append("</COLLADA>\n");
 			File.WriteAllText(exportPath, sb.ToString());
 		}
-		private static string WriteDaeSource(float[][] floats, string name, CMoby moby, int bangleIndex, string mobyName, int stride)
+		private static void WriteDaeSource(StringBuilder sb, float[][] floats, string name, CMoby moby, int bangleIndex, string mobyName, int stride)
 		{
-			StringBuilder sb = new StringBuilder();
 			sb.AppendFormat("          <source id=\"{0}_{1}-mesh-{2}\">\n", mobyName, bangleIndex, name);
 			int bangleVertexCount = 0;
 			StringBuilder vertext = new StringBuilder();	//I'm a bit of a commedic genious
@@ -252,7 +248,6 @@ namespace AssetExtractor
 			      sb.Append("              </accessor>\n");
 			      sb.Append("            </technique_common>\n");
 			      sb.Append("          </source>\n");
-			return sb.ToString();
 		}
 		private static void WriteSurfaceBlock(StringBuilder sb, CTexture texture)
 		{

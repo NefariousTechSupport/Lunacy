@@ -119,14 +119,6 @@ namespace Lunacy
 					}
 				}
 			}
-
-			foreach(List<Entity> tfrag in TFrags)
-			{
-				for(int i = 0; i < tfrag.Count; i++)
-				{
-					opaqueDrawables.Add(tfrag[i].drawable as Drawable);
-				}
-			}
 		}
 
 		public void RenderOpaque()
@@ -134,6 +126,13 @@ namespace Lunacy
 			for(int i = 0; i < opaqueDrawables.Count; i++)
 			{
 				opaqueDrawables[i].Draw();
+			}
+			for(int i = 0; i < TFrags.Count; i++)
+			{
+				for(int j = 0; j < TFrags[i].Count; j++)
+				{
+					TFrags[i][j].Draw();
+				}
 			}
 		}
 		public void RenderTransparent()

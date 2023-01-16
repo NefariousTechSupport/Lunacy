@@ -42,11 +42,11 @@ namespace LibLunacy
 
 		public enum TexFormat
 		{
+			R5G6B5 = 0x03,
 			A8R8G8B8 = 0x05,
 			DXT1 = 0x06,
 			DXT3 = 0x07,
 			DXT5 = 0x08,
-			R5G6B5 = 0x0B,
 		}
 
 		public uint HighmipSize
@@ -60,6 +60,10 @@ namespace LibLunacy
 					case TexFormat.DXT3:
 					case TexFormat.DXT5:
 						return (uint)(Math.Max(1, (width+3)/4) * Math.Max(1, (height+3)/4)) * 16;
+					case TexFormat.A8R8G8B8:
+						return (uint)(width * height * 4u);
+					case TexFormat.R5G6B5:
+						return (uint)(width * height * 2u);
 					default:
 						return 0;
 				}
@@ -96,6 +100,8 @@ namespace LibLunacy
 
 				data = new byte[HighmipSize];
 
+				if(HighmipSize == 0) return;
+
 				if(texstream != null && ots.Any(x => x.index == index))
 				{
 					texstream.Seek(ots.First(x => x.index == index).offset, SeekOrigin.Begin);
@@ -105,10 +111,10 @@ namespace LibLunacy
 					}
 					else
 					{
-						width = 0;
-						height = 0;
-						//Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
-						//Unswizzle(texstream, ref data, width, height, format);
+						//width = 0;
+						//height = 0;
+						Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
+						Unswizzle(texstream, ref data, width, height, format);
 					}
 				}
 				else
@@ -120,10 +126,10 @@ namespace LibLunacy
 					}
 					else
 					{
-						width = 0;
-						height = 0;
-						//Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
-						//Unswizzle(textures, ref data, width, height, format);
+						//width = 0;
+						//height = 0;
+						Console.WriteLine($"Unswizzling {((uint)(texrefs.offset + index * 0x20)).ToString("X08")}");
+						Unswizzle(textures, ref data, width, height, format);
 					}
 				}
 
@@ -190,6 +196,7 @@ namespace LibLunacy
 		{
 			if(format == TexFormat.DXT1 || format == TexFormat.DXT3 || format == TexFormat.DXT5) throw new InvalidOperationException("DXT textures aren't swizzled");
 			if(b.Length == 0) throw new ArgumentException("Array too small");
+			//if(b.Length == 0) return;
 
 			long ogPos = s.Position;
 
@@ -199,11 +206,15 @@ namespace LibLunacy
 
 			byte[] pixel = new byte[pixelSize];
 
-			for(int t = 0; t < height * width / (pixelSize * pixelSize); t++)
+			for(int t = 0; t < width * height; t++)
 			{
 				int index = Morton(t, width, height);
 				s.Read(pixel);
-				Array.Reverse(pixel);
+				if(format == TexFormat.A8R8G8B8)
+				{
+					Array.Reverse(pixel, 1, 3);	// ABGR -> ARGB
+					Array.Reverse(pixel, 0, 4); // ARGB -> RGBA
+				}
 				Array.Copy(pixel, 0, b, index * pixelSize, pixelSize);
 			}
 		}
@@ -293,6 +304,23 @@ namespace LibLunacy
 					break;
 				case TexFormat.DXT5:
 					dst.Write(BitConverter.GetBytes((byte)0x35), 0x00, 0x01);
+					break;
+				case TexFormat.A8R8G8B8:
+					dst.Seek(0x4C, SeekOrigin.Begin);
+					dst.Write(new byte[]
+					{
+						0x20, 0x00, 0x00, 0x00,
+						0x41, 0x00, 0x00, 0x00,
+						0x00, 0x00, 0x00, 0x00,
+						0x20, 0x00, 0x00, 0x00,
+						0x00, 0x00, 0x00, 0xFF,
+						0x00, 0x00, 0xFF, 0x00,
+						0x00, 0xFF, 0x00, 0x00,
+						0xFF, 0x00, 0x00, 0x00
+					}, 0x00, 0x20);
+					break;
+				default:
+					Console.WriteLine($"WARNING: TEXTURE {id.ToString("X08")} aka {name} has unsupported texture format {format.ToString()}");
 					break;
 			}
 			dst.Seek(0x80, SeekOrigin.Begin);

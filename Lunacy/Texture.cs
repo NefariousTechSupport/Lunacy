@@ -40,7 +40,7 @@ namespace Lunacy
 					else if(format == CTexture.TexFormat.A8R8G8B8)
 					{
 						int size = 4 * ctex.width * ctex.height;
-						GL.TexImage2D(TextureTarget.Texture2D, i, PixelInternalFormat.Rgba, ctex.width, ctex.height, 0, PixelFormat.Rgba, PixelType.Byte, (IntPtr)(b + offset));
+						GL.TexImage2D(TextureTarget.Texture2D, i, PixelInternalFormat.Rgba, ctex.width, ctex.height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)(b + offset));
 					}
 					else if(format == CTexture.TexFormat.R5G6B5)
 					{
