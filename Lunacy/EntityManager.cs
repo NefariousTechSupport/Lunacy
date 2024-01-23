@@ -187,9 +187,9 @@ namespace Lunacy
 			Matrix4 transposed = Utils.ToOpenTKMatrix4(tfrag.transformation);
 			//transform = new Transform(transposed);
 			transform = new Transform(new Matrix4(
-				transposed.M11, transposed.M12, transposed.M13, 0,
-				transposed.M21, transposed.M22, transposed.M23, 0,
-				transposed.M31, transposed.M32, transposed.M33, 0,
+				transposed.M11 * 10, transposed.M12 * 10, transposed.M13 * 10, 0,	// X ??
+				transposed.M31 * 5, transposed.M32 * 5, transposed.M33 * 5, 0,		// Y ?
+				transposed.M21 * 7, transposed.M22 * 7, transposed.M23 * 7, 0,		// Z ?????
 				transposed.M41, transposed.M42, transposed.M43, 1
 			));
 		}

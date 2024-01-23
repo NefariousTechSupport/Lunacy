@@ -10,7 +10,7 @@ namespace LibLunacy
 			[FileOffset(0x00)] public Matrix4x4 transformation;
 			[FileOffset(0x40)] public Vector3 boundingPosition;
 			[FileOffset(0x4C)] public float boundingRadius;
-			[FileOffset(0x50)] public uint tie;					//Offset but used as a key into the assetloader ties dictionary on old engine, otherwise index into tuid array
+			[FileOffset(0x50)] public uint tie;					//Offset but used as k key into the assetloader ties dictionary on old engine, otherwise index into tuid array
 		}
 
 		[FileStructure(0x80)]
@@ -21,6 +21,7 @@ namespace LibLunacy
 			[FileOffset(0x44)] public uint vertexOffset;
 			[FileOffset(0x48)] public ushort indexCount;
 			[FileOffset(0x4A)] public ushort vertexCount;
+			[FileOffset(0x4C)] public Vector3 unk;
 			[FileOffset(0x70)] public Vector3 scale;
 
 			public float[] vPositions;
@@ -135,9 +136,9 @@ namespace LibLunacy
 				for(int j = 0; j < tfrags[i].vertexCount; j++)
 				{
 					geometryFile.sh.Seek(vertexSection.offset + tfrags[i].vertexOffset + 0x18 * j);
-					float x = file.sh.ReadInt16() / (float)0x7FFF;
-					float y = file.sh.ReadInt16() / (float)0x7FFF;
-					float z = file.sh.ReadInt16() / (float)0x7FFF;
+					float y = (file.sh.ReadInt16() / (float)0x7FFF);
+					float z = (file.sh.ReadInt16() / (float)0x7FFF);
+					float x = (file.sh.ReadInt16() / (float)0x7FFF);
 					tfrags[i].vPositions[j * 3 + 0] = x;
 					tfrags[i].vPositions[j * 3 + 1] = y;
 					tfrags[i].vPositions[j * 3 + 2] = z;
