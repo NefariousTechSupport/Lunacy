@@ -189,6 +189,7 @@ namespace LibLunacy
 				MemoryStream zonems = new MemoryStream(zonedat);
 				IGFile igzone = new IGFile(zonems);
 				CZone zone = new CZone(igzone, this);
+				Console.WriteLine("[0x{0:X}] Zone {1} (0x{2:X}) has {3} ufrags.", zonePtrs[i].offset, zone.name, zonePtrs[i].tuid, zone.tfrags.Length);
 				zones.Add(zonePtrs[i].tuid, zone);
 			}
 		}
