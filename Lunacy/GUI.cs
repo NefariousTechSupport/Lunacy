@@ -130,15 +130,15 @@ namespace Lunacy
 			bool posChanged = false;
 			bool rotChanged = false;
 			bool scaleChanged = false;
-			System.Numerics.Vector3 position = Utils.ToNumericsVector3(selectedEntity.transform.position);
-			System.Numerics.Vector3 rotation = Utils.ToNumericsVector3(selectedEntity.transform.eulerRotation * (180f / MathHelper.Pi));
-			System.Numerics.Vector3 scale = Utils.ToNumericsVector3(selectedEntity.transform.scale);
+			System.Numerics.Vector3 position = Utils.ToNumerics(selectedEntity.transform.position);
+			System.Numerics.Vector3 rotation = Utils.ToNumerics(selectedEntity.transform.eulerRotation * (180f / MathHelper.Pi));
+			System.Numerics.Vector3 scale = Utils.ToNumerics(selectedEntity.transform.scale);
 			if(ImGui.InputFloat3("Position", ref position)) posChanged = true;
 			if(ImGui.InputFloat3("Rotation", ref rotation)) rotChanged = true;
 			if(ImGui.InputFloat3("Scale", ref scale)) scaleChanged = true;
-			if(posChanged) selectedEntity.SetPosition(Utils.ToOpenTKVector3(position));
-			if(rotChanged) selectedEntity.SetRotation(Utils.ToOpenTKVector3(rotation / (180f / MathHelper.Pi)));
-			if(scaleChanged) selectedEntity.SetScale(Utils.ToOpenTKVector3(scale));
+			if(posChanged) selectedEntity.SetPosition(Utils.ToOpenTK(position));
+			if(rotChanged) selectedEntity.SetRotation(Utils.ToOpenTK(rotation / (180f / MathHelper.Pi)));
+			if(scaleChanged) selectedEntity.SetScale(Utils.ToOpenTK(scale));
 			ImGui.End();
 			//ImGui.ShowDemoWindow();
 		}

@@ -48,7 +48,7 @@ namespace Lunacy
 					{
 						for(uint k = 0; k < gp.regions[i].zones[j].tfrags.Length; k++)
 						{
-							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k]);
+							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k], gp.regions[i].zones[j].ufragscales[k]);
                             TFrags.Last().Add(ufrag);
 						}
 					}
@@ -170,31 +170,42 @@ namespace Lunacy
 					);
 			name = mobyInstance.name;
 			(drawable as DrawableListList).AddDrawCall(transform);
-			boundingSphere = new Vector4(Utils.ToOpenTKVector3(mobyInstance.moby.boundingSpherePosition) + transform.position, mobyInstance.moby.boundingSphereRadius * mobyInstance.scale);
+			boundingSphere = new Vector4(Utils.ToOpenTK(mobyInstance.moby.boundingSpherePosition) + transform.position, mobyInstance.moby.boundingSphereRadius * mobyInstance.scale);
 		}
 		public Entity(CZone.CTieInstance tieInstance)
 		{
 			instance = tieInstance;
 			drawable = AssetManager.Singleton.ties[tieInstance.tie.id];
-			transform = new Transform(Utils.ToOpenTKMatrix4(tieInstance.transformation));
+			transform = new Transform(tieInstance.transformation.ToOpenTK());
 			name = tieInstance.name;
 			(drawable as DrawableList).AddDrawCall(transform);
-			boundingSphere = new Vector4(Utils.ToOpenTKVector3(tieInstance.boundingPosition), tieInstance.boundingRadius);
+			boundingSphere = new Vector4(Utils.ToOpenTK(tieInstance.boundingPosition), tieInstance.boundingRadius);
 		}
-		public Entity(CZone.NewTFrag tfrag)
+		public Entity(CZone.NewTFrag tfrag, CZone.UFragScalar ufragScale)
 		{
 			instance = tfrag;
 			drawable = new Drawable(ref tfrag);
-			name = "hi";
-			//transform = new Transform(Utils.ToOpenTKVector3(tfrag.position), Vector3.Zero, Vector3.One);
-			Matrix4 transposed = Utils.ToOpenTKMatrix4(tfrag.transformation);
+			name = "ufrag";
+			//transform = new Transform(Utils.ToOpenTK(tfrag.position), Vector3.Zero, Vector3.One);
+			Matrix4 transposed = tfrag.transformation.ToOpenTK();
+
+			transposed.DecomposeMatrix4(out var pos, out var rotQuat, out var scale);
+
+			Console.WriteLine($"pos:{pos}; scale:{scale}");
+
+			//Console.WriteLine(LibLunacy.Utils.ToString(transposed));
 			//transform = new Transform(transposed);
+			transform = new Transform(pos.ToOpenTK(), Vector3.Zero, Vector3.One * 0.0042f);
+			Console.WriteLine(Utils.ToString(transform));
+			/*
 			transform = new Transform(new Matrix4(
-				transposed.M11, transposed.M12, transposed.M13, 0,	
-				transposed.M31, transposed.M32, transposed.M33, 0,	
-				transposed.M21, transposed.M22, transposed.M23, 0,	
+				transposed.M11, transposed.M12, transposed.M13, 0,
+                transposed.M31, transposed.M32, transposed.M33, 0,
+                transposed.M21, transposed.M22, transposed.M23, 0,	
 				transposed.M41, transposed.M42, transposed.M43, 1
 			));
+			*/
+			//Console.WriteLine(LibLunacy.Utils.ToString(transform));
 		}
 
 		public void SetPosition(Vector3 position)

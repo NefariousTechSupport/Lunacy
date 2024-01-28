@@ -29,6 +29,8 @@ namespace LibLunacy
 			[FileOffset(0x6C)] public float unk5; // Always 1 or 0.2
 			[FileOffset(0x70)] public Vector3 scale;
 			[FileOffset(0x7C)] public float unk6;  // Always 0
+			
+			// The legend tells that the shader index of the UFrag is hidden somewhere in this mess.
 
 			public float[] vPositions;
 			public uint[] indices;
@@ -37,37 +39,52 @@ namespace LibLunacy
         [FileStructure(0x18)]
         public struct UFragVertex
         {
-            [FileOffset(0x00)] public short y;
-            [FileOffset(0x02)] public short z;
-            [FileOffset(0x04)] public short x;
-            [FileOffset(0x06)] public ushort unkConst;
+            [FileOffset(0x00)] public short x;
+            [FileOffset(0x02)] public short y;
+            [FileOffset(0x04)] public short z;
+            [FileOffset(0x06)] public ushort unkConst;  // Not an interesting thing afaik
             [FileOffset(0x08)] public Half UVx;
             [FileOffset(0x0A)] public Half UVy;
             [FileOffset(0x0C)] public float unk1;
-            [FileOffset(0x10)] public ushort unk2;
-			[FileOffset(0x12)] public ushort unk3;
+            [FileOffset(0x10)] public Half unk2;
+			[FileOffset(0x12)] public Half unk3;
 			[FileOffset(0x14)] public short unkShort;
-			[FileOffset(0x16)] public short unk4;
+			[FileOffset(0x16)] public ushort unk4;
+        }
 
-			public override string ToString()
-			{
-				var fields = typeof(UFragVertex).GetFields();
-				var sb = new StringBuilder();
-				sb.AppendLine("UFragVertex {");
-				foreach(var field in fields)
-				{
-					var val = field.GetValue(this);
-					sb.AppendLine($"\t{field.FieldType.Name} {field.Name}: {val};");
-				}
-				sb.AppendLine("}");
-				return sb.ToString();
-			}
+		[FileStructure(0x10)]
+		public struct UFragScalar
+		{
+			[FileOffset(0x00)] public uint index;
+			[FileOffset(0x04)] public float x;
+			[FileOffset(0x08)] public float y;
+			[FileOffset(0x0C)] public uint padder;
+		}
+
+		/// <summary>
+		/// For debug purposes.
+		/// </summary>
+		/// <param name="obj">Any object</param>
+		/// <returns>An accurate string representation of the object</returns>
+        public static string ToString(object obj)
+        {
+            var fields = obj.GetType().GetFields();
+            var sb = new StringBuilder();
+            sb.AppendLine($"{obj.GetType().Name} {{");
+            foreach (var field in fields)
+            {
+                var val = field.GetValue(obj);
+                sb.AppendLine($"\t{field.FieldType.Name} {field.Name}: {val};");
+            }
+            sb.AppendLine("}");
+            return sb.ToString();
         }
 
 
         public int index = 0;
 		public Dictionary<ulong, CTieInstance> tieInstances = new Dictionary<ulong, CTieInstance>();
 		public NewTFrag[] tfrags;
+		public UFragScalar[] ufragscales;
 		public string name;
 
 		public class CTieInstance
@@ -148,37 +165,44 @@ namespace LibLunacy
 
 			IGFile.SectionHeader vertexSection;
 			IGFile.SectionHeader indexSection;
+			IGFile.SectionHeader scalarSection;
 
 			if(al.fm.isOld)
 			{
 				geometryFile = al.fm.igfiles["vertices.dat"];
 				vertexSection = file.QuerySection(0x9000);
 				indexSection = file.QuerySection(0x9100);
+				scalarSection = file.QuerySection(0x9400);
 			}
 			else
 			{
 				geometryFile = file;
 				vertexSection = file.QuerySection(0x6000);
 				indexSection = file.QuerySection(0x6100);
+				scalarSection = file.QuerySection(0x6400);
 			}
 
-			file.sh.Seek(tfragSection.offset);
+            geometryFile.sh.Seek(scalarSection.offset);
+            ufragscales = geometryFile.sh.ReadStructArray<UFragScalar>(scalarSection.count);
+
+            geometryFile.sh.Seek(tfragSection.offset);
 			tfrags = FileUtils.ReadStructureArray<NewTFrag>(file.sh, tfragSection.count);
-			for(int i = 0; i < tfrags.Length; i++)
+            for (int i = 0; i < tfrags.Length; i++)
 			{
 				tfrags[i].vPositions = new float[tfrags[i].vertexCount * 3];
 				tfrags[i].indices = new uint[tfrags[i].indexCount];
 
 				geometryFile.sh.Seek(vertexSection.offset + tfrags[i].vertexOffset);
-				var tfragVertice = geometryFile.sh.ReadStructArray<UFragVertex>(tfrags[i].vertexCount);
+				var uFragVertices = geometryFile.sh.ReadStructArray<UFragVertex>(tfrags[i].vertexCount);
+
+				//Console.WriteLine(ToString(uFragVertices[1]));
 
 				for(int j = 0; j < tfrags[i].vertexCount; j++)
 				{
-					var uFragVertex = tfragVertice[j];
-
-					tfrags[i].vPositions[j * 3 + 0] = uFragVertex.x / 5000;
-					tfrags[i].vPositions[j * 3 + 1] = uFragVertex.y / 5000;
-					tfrags[i].vPositions[j * 3 + 2] = uFragVertex.z / 5000;
+					var uFragVertex = uFragVertices[j];
+					tfrags[i].vPositions[j * 3 + 1] = uFragVertex.y;
+					tfrags[i].vPositions[j * 3 + 2] = uFragVertex.z;
+					tfrags[i].vPositions[j * 3 + 0] = uFragVertex.x;
 				}
 
                 geometryFile.sh.Seek(indexSection.offset + tfrags[i].indexOffset);
@@ -187,6 +211,8 @@ namespace LibLunacy
 				{
 					tfrags[i].indices[j] = file.sh.ReadUInt16();
 				}
+
+				//Console.WriteLine(ToString(ufragscales[i]));
 			}
 		}
 	}
