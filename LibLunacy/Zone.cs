@@ -1,9 +1,8 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 
 namespace LibLunacy
 {
-	public class CZone
+    public class CZone
 	{
 		[FileStructure(0x80)]
 		public struct TieInstance
@@ -22,18 +21,20 @@ namespace LibLunacy
 			[FileOffset(0x44)] public uint vertexOffset;
 			[FileOffset(0x48)] public ushort indexCount;
 			[FileOffset(0x4A)] public ushort vertexCount;
-			[FileOffset(0x4C)] public float unk1;
-			[FileOffset(0x54)] public Vector3 unk2;
-			[FileOffset(0x5C)] public float unk3;
-			[FileOffset(0x68)] public Vector3 unk4;
-			[FileOffset(0x6C)] public float unk5; // Always 1 or 0.2
-			[FileOffset(0x70)] public Vector3 scale;
-			[FileOffset(0x7C)] public float unk6;  // Always 0
+			[FileOffset(0x5C)] public ulong unk1;
+			[FileOffset(0x54)] public ulong unk2;
+			[FileOffset(0x6C)] public ulong unk3;
+			[FileOffset(0x64)] public ulong unk4;
+			[FileOffset(0x7C)] public ulong unk5;
+			//[FileOffset(0x70)] public Vector3 scale; //?
+			[FileOffset(0x74)] public ulong unk6;
 			
 			// The legend tells that the shader index of the UFrag is hidden somewhere in this mess.
 
 			public float[] vPositions;
+			public float[] vTexCoords;
 			public uint[] indices;
+			public CShader shader;
 		}
 
         [FileStructure(0x18)]
@@ -48,16 +49,15 @@ namespace LibLunacy
             [FileOffset(0x0C)] public float unk1;
             [FileOffset(0x10)] public Half unk2;
 			[FileOffset(0x12)] public Half unk3;
-			[FileOffset(0x14)] public short unkShort;
-			[FileOffset(0x16)] public ushort unk4;
+			[FileOffset(0x14)] public short unk4;
+			[FileOffset(0x16)] public ushort unk5;
         }
 
 		[FileStructure(0x10)]
-		public struct UFragScalar
+		public struct UFragShaderIndexIDK
 		{
-			[FileOffset(0x00)] public uint index;
-			[FileOffset(0x04)] public float x;
-			[FileOffset(0x08)] public float y;
+			[FileOffset(0x00)] public uint shaderIndex;
+			[FileOffset(0x04)] public ulong unk;
 			[FileOffset(0x0C)] public uint padder;
 		}
 
@@ -84,7 +84,7 @@ namespace LibLunacy
         public int index = 0;
 		public Dictionary<ulong, CTieInstance> tieInstances = new Dictionary<ulong, CTieInstance>();
 		public NewTFrag[] tfrags;
-		public UFragScalar[] ufragscales;
+		public UFragShaderIndexIDK[] unknownUFragsStuff;
 		public string name;
 
 		public class CTieInstance
@@ -159,61 +159,93 @@ namespace LibLunacy
 
 		private void LoadTFrags(IGFile file, AssetLoader al)
 		{
-			IGFile.SectionHeader tfragSection = file.QuerySection(0x6200);
+			IGFile.SectionHeader tfragSection;
 
 			IGFile geometryFile;
 
 			IGFile.SectionHeader vertexSection;
-			IGFile.SectionHeader indexSection;
-			IGFile.SectionHeader scalarSection;
+            IGFile.SectionHeader indexSection;
+			IGFile.SectionHeader shaderRelatedMaybe;
+			IGFile.SectionHeader shaderSection;
 
 			if(al.fm.isOld)
 			{
-				geometryFile = al.fm.igfiles["vertices.dat"];
+				tfragSection = file.QuerySection(0x6200);
+
+                geometryFile = al.fm.igfiles["vertices.dat"];
 				vertexSection = file.QuerySection(0x9000);
 				indexSection = file.QuerySection(0x9100);
-				scalarSection = file.QuerySection(0x9400);
+                shaderRelatedMaybe = file.QuerySection(0x9400);
+				shaderSection = file.QuerySection(0x5000);
 			}
 			else
 			{
-				geometryFile = file;
+				tfragSection = file.QuerySection(0x6200);
+
+                geometryFile = file;
 				vertexSection = file.QuerySection(0x6000);
 				indexSection = file.QuerySection(0x6100);
-				scalarSection = file.QuerySection(0x6400);
+                shaderRelatedMaybe = file.QuerySection(0x6400);
+				shaderSection = file.QuerySection(0x5700);
 			}
 
-            geometryFile.sh.Seek(scalarSection.offset);
-            ufragscales = geometryFile.sh.ReadStructArray<UFragScalar>(scalarSection.count);
+            file.sh.Seek(shaderRelatedMaybe.offset);
+            unknownUFragsStuff = file.sh.ReadStructArray<UFragShaderIndexIDK>(shaderRelatedMaybe.count);
 
-            geometryFile.sh.Seek(tfragSection.offset);
+            file.sh.Seek(tfragSection.offset);
 			tfrags = FileUtils.ReadStructureArray<NewTFrag>(file.sh, tfragSection.count);
             for (int i = 0; i < tfrags.Length; i++)
 			{
+				//Console.WriteLine(ToString(tfrags[i]));
 				tfrags[i].vPositions = new float[tfrags[i].vertexCount * 3];
+				tfrags[i].vTexCoords = new float[tfrags[i].vertexCount * 2];
 				tfrags[i].indices = new uint[tfrags[i].indexCount];
 
 				geometryFile.sh.Seek(vertexSection.offset + tfrags[i].vertexOffset);
 				var uFragVertices = geometryFile.sh.ReadStructArray<UFragVertex>(tfrags[i].vertexCount);
 
-				//Console.WriteLine(ToString(uFragVertices[1]));
-
 				for(int j = 0; j < tfrags[i].vertexCount; j++)
 				{
 					var uFragVertex = uFragVertices[j];
-					tfrags[i].vPositions[j * 3 + 1] = uFragVertex.y;
+                    tfrags[i].vPositions[j * 3 + 0] = uFragVertex.x;
+                    tfrags[i].vPositions[j * 3 + 1] = uFragVertex.y;
 					tfrags[i].vPositions[j * 3 + 2] = uFragVertex.z;
-					tfrags[i].vPositions[j * 3 + 0] = uFragVertex.x;
+
+					tfrags[i].vTexCoords[j * 2 + 0] = (float)uFragVertex.UVx;
+					tfrags[i].vTexCoords[j * 2 + 1] = (float)uFragVertex.UVy;
 				}
 
                 geometryFile.sh.Seek(indexSection.offset + tfrags[i].indexOffset);
-
-                for(int j = 0; j < tfrags[i].indexCount; j++)
+                for (int j = 0; j < tfrags[i].indexCount; j++)
 				{
 					tfrags[i].indices[j] = file.sh.ReadUInt16();
 				}
 
-				//Console.WriteLine(ToString(ufragscales[i]));
-			}
+				if (al.shaders.TryGetValue(tfrags[i].unk6, out var shad))
+				{
+					tfrags[i].shader = shad;
+					Console.WriteLine("Found shader for ufrag {0}", i);
+				}
+				else Console.WriteLine("Shader not found for ufrag {0}", i);
+
+				// Try finding the Shader TUID.
+				/*if(al.fm.isOld)
+				{
+					Console.WriteLine("UFrags textures is not supported on Luna versions under 1.1");
+				}
+				else
+                {
+                    file.sh.Seek(shaderSection.offset + tfrags[i].shaderIndex * 8);
+                    var shadtuid = file.sh.ReadUInt64();
+
+					if (al.shaders.TryGetValue(shadtuid, out var shad))
+					{
+						tfrags[i].shader = shad;
+						Console.WriteLine("[0x{0:X}] Shader found with index {1}", shaderSection.offset + tfrags[i].shaderIndex * 8, tfrags[i].shaderIndex);
+					}
+					else Console.WriteLine("[0x{0:X}] Shader not found with index {1}", shaderSection.offset + tfrags[i].shaderIndex * 8, tfrags[i].shaderIndex);
+				}*/
+            }
 		}
 	}
 }

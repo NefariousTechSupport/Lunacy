@@ -48,7 +48,7 @@ namespace Lunacy
 					{
 						for(uint k = 0; k < gp.regions[i].zones[j].tfrags.Length; k++)
 						{
-							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k], gp.regions[i].zones[j].ufragscales[k]);
+							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k], gp.regions[i].zones[j].unknownUFragsStuff[k]);
                             TFrags.Last().Add(ufrag);
 						}
 					}
@@ -181,7 +181,7 @@ namespace Lunacy
 			(drawable as DrawableList).AddDrawCall(transform);
 			boundingSphere = new Vector4(Utils.ToOpenTK(tieInstance.boundingPosition), tieInstance.boundingRadius);
 		}
-		public Entity(CZone.NewTFrag tfrag, CZone.UFragScalar ufragScale)
+		public Entity(CZone.NewTFrag tfrag, CZone.UFragShaderIndexIDK ufragScale)
 		{
 			instance = tfrag;
 			drawable = new Drawable(ref tfrag);
@@ -191,21 +191,10 @@ namespace Lunacy
 
 			transposed.DecomposeMatrix4(out var pos, out var rotQuat, out var scale);
 
-			Console.WriteLine($"pos:{pos}; scale:{scale}");
+			//Console.WriteLine($"pos:{pos}; scale:{scale}");
 
-			//Console.WriteLine(LibLunacy.Utils.ToString(transposed));
-			//transform = new Transform(transposed);
-			transform = new Transform(pos.ToOpenTK(), Vector3.Zero, Vector3.One * 0.0042f);
-			Console.WriteLine(Utils.ToString(transform));
-			/*
-			transform = new Transform(new Matrix4(
-				transposed.M11, transposed.M12, transposed.M13, 0,
-                transposed.M31, transposed.M32, transposed.M33, 0,
-                transposed.M21, transposed.M22, transposed.M23, 0,	
-				transposed.M41, transposed.M42, transposed.M43, 1
-			));
-			*/
-			//Console.WriteLine(LibLunacy.Utils.ToString(transform));
+			transform = new Transform(pos.ToOpenTK(), Vector3.Zero, Vector3.One * 0.004096f);
+			//Console.WriteLine(Utils.ToString(transform));
 		}
 
 		public void SetPosition(Vector3 position)

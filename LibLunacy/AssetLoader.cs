@@ -171,7 +171,11 @@ namespace LibLunacy
 			IGFile.SectionHeader zoneSection = main.QuerySection(0x5000);
 			for(int i = 0; i < zoneSection.count; i++)
 			{
-				zones.Add((ulong)i, new CZone(main, this));
+				CZone zone = new CZone(main, this);
+
+				Console.WriteLine("[0x{0:X}] Zone {1} ({2}) has {3} ufrags", "unk", zone.name, i, zone.tfrags.Length);
+				zones.Add((ulong)i, zone);
+				 
 			}
 		}
 		private void LoadZonesNew()

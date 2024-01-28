@@ -27,12 +27,13 @@ namespace LibLunacy
 			sh.Seek(0x00);
 
 			uint magic1 = sh.ReadUInt32();
-			uint type = sh.ReadUInt32();
+			Version lunaVersion = new(sh.ReadUInt16(), sh.ReadUInt16());
+			//uint type = sh.ReadUInt32();  // Old, deprecated.
 
 			if(magic1 == 0x57484749) sh._endianness = StreamHelper.Endianness.Little;
 			else if(magic1 != 0x49474857) throw new System.Exception("Invalid IGHW file");
 
-			if(type == 0x00010001)
+			if(lunaVersion == new Version(1, 1))
 			{
 				sectionCount = sh.ReadUInt32();
 				headerLength = sh.ReadUInt32();
@@ -41,12 +42,14 @@ namespace LibLunacy
 
 				sh.Seek(0x20);
 			}
-			else if(type == 0x02)
+			else if(lunaVersion == new Version(0, 2))
 			{
 				sectionCount = sh.ReadUInt32();
 
 				sh.Seek(0x10);
 			}
+
+			Console.WriteLine($"Luna engine version: {lunaVersion.ToString(2)}");
 
 			sections = FileUtils.ReadStructureArray<SectionHeader>(sh, sectionCount);
 
