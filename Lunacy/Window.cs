@@ -16,6 +16,7 @@ namespace Lunacy
 		Material composite;
 		Material screen;
 
+		internal static float framerate;
 		int opaqueFbo;
 		int transFbo;
 		int opaqueTex;
@@ -211,8 +212,10 @@ namespace Lunacy
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs args)
-		{
-			if(KeyboardState.IsKeyDown(Keys.Escape)) Close();
+        {
+            framerate = (float)(1 / args.Time);
+
+            if (KeyboardState.IsKeyDown(Keys.Escape)) Close();
 
 			float moveSpeed = 5;
 			float sensitivity = 0.01f;
@@ -240,7 +243,7 @@ namespace Lunacy
 				CursorVisible = true;
 			}
 
-			Title = $"Lunacy Level Editor | {1 / args.Time}";
+			Title = $"Lunacy Level Editor | {framerate}";
 
 			base.OnUpdateFrame(args);
 		}

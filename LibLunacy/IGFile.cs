@@ -49,7 +49,7 @@ namespace LibLunacy
 				sh.Seek(0x10);
 			}
 
-			Console.WriteLine($"Luna engine version: {lunaVersion.ToString(2)}");
+			//Console.WriteLine($"Luna engine version: {lunaVersion.ToString(2)}");
 
 			sections = FileUtils.ReadStructureArray<SectionHeader>(sh, sectionCount);
 

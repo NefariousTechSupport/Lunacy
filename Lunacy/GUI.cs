@@ -1,4 +1,9 @@
 using ImGuiNET;
+using System.Numerics;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
+using Matrix4 = OpenTK.Mathematics.Matrix4;
 
 namespace Lunacy
 {
@@ -66,10 +71,49 @@ namespace Lunacy
 				}
 			}
 
+			if(true)
+			{
+				RenderInfoOverlay();
+			}
+
 			if(selectedEntity != null)
 			{
 				ShowEntityInfo();
 			}
+		}
+
+		public void RenderInfoOverlay()
+		{
+			ImGuiIOPtr io = ImGui.GetIO();
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoNav;
+
+			float padding = 10f;
+			ImGuiViewportPtr viewport = ImGui.GetMainViewport();
+			Vector2 work_pos = viewport.WorkPos;
+			Vector2 work_size = viewport.WorkSize;
+			Vector2 win_pos, win_pos_pivot;
+			win_pos.X = work_pos.X + padding;
+			win_pos.Y = work_pos.Y + work_size.Y - padding;
+			win_pos_pivot.X = 0;
+			win_pos_pivot.Y = 1f;
+			ImGui.SetNextWindowPos(win_pos, ImGuiCond.Always, win_pos_pivot);
+			windowFlags |= ImGuiWindowFlags.NoMove;  // Locks the overlay;
+
+			ImGui.SetNextWindowBgAlpha(0.4f);
+			if(ImGui.Begin("Stats", windowFlags))
+			{
+				ImGui.Text("Camera info");
+				ImGui.Separator();
+				ImGui.Text($"Pos: {Camera.transform.position}");
+				ImGui.Text($"Rot: {Camera.transform.eulerRotation}");
+				ImGui.Separator();
+				ImGui.Text("Statistics");
+				ImGui.Separator();
+				ImGui.Text("Framerate: ");
+				ImGui.SameLine();
+				ImGui.TextColored(Window.framerate > 30 ? new Vector4(0.15f, 1f, 0.15f, 1f) : new Vector4(1f, 0.15f, 0.15f, 1f), $"{Math.Round(Window.framerate)}");
+			}
+			ImGui.End();
 		}
 
 		public void Tick()
@@ -79,17 +123,17 @@ namespace Lunacy
 			if(raycast)
 			{
 
-				Vector2 mouse = wnd.MouseState.Position;
-				Vector3 viewport = new Vector3(
+				OpenTK.Mathematics.Vector2 mouse = wnd.MouseState.Position;
+				OpenTK.Mathematics.Vector3 viewport = new Vector3(
 					(2 * mouse.X) / wnd.ClientSize.X - 1,
 					1 - (2 * mouse.Y) / wnd.ClientSize.Y,
 					1
-				);
-				Vector4 homogeneousClip = new Vector4(viewport.X, viewport.Y, -1, 1);
-				Vector4 eye = Matrix4.Invert(Matrix4.Transpose(Camera.ViewToClip)) * homogeneousClip;
+				).ToOpenTK();
+				OpenTK.Mathematics.Vector4 homogeneousClip = new(viewport.X, viewport.Y, -1, 1);
+				OpenTK.Mathematics.Vector4 eye = Matrix4.Invert(Matrix4.Transpose(Camera.ViewToClip)) * homogeneousClip;
 				eye.Z = -1;
 				eye.W = 0;
-				Vector3 world = (Matrix4.Invert(Matrix4.Transpose(Camera.WorldToView)) * eye).Xyz;
+				OpenTK.Mathematics.Vector3 world = (Matrix4.Invert(Matrix4.Transpose(Camera.WorldToView)) * eye).Xyz;
 				world.Normalize();
 				string entityNames = string.Empty;
 				for(int i = 0; i < EntityManager.Singleton.MobyHandles.Count; i++)

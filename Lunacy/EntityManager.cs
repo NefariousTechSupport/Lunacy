@@ -48,7 +48,7 @@ namespace Lunacy
 					{
 						for(uint k = 0; k < gp.regions[i].zones[j].tfrags.Length; k++)
 						{
-							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k], gp.regions[i].zones[j].unknownUFragsStuff[k]);
+							var ufrag = new Entity(gp.regions[i].zones[j].tfrags[k]);
                             TFrags.Last().Add(ufrag);
 						}
 					}
@@ -181,7 +181,7 @@ namespace Lunacy
 			(drawable as DrawableList).AddDrawCall(transform);
 			boundingSphere = new Vector4(Utils.ToOpenTK(tieInstance.boundingPosition), tieInstance.boundingRadius);
 		}
-		public Entity(CZone.NewTFrag tfrag, CZone.UFragShaderIndexIDK ufragScale)
+		public Entity(CZone.NewTFrag tfrag)
 		{
 			instance = tfrag;
 			drawable = new Drawable(ref tfrag);
