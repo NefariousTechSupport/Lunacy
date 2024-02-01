@@ -15,7 +15,7 @@ namespace Lunacy
 		public List<List<Entity>> TieInstances = new List<List<Entity>>();
 		public List<List<Entity>> TFrags = new List<List<Entity>>();
 
-		List<Entity> mobys = new List<Entity>();
+		internal List<Entity> mobys = new List<Entity>();
 
 		List<Drawable> transparentDrawables = new List<Drawable>();
 		List<Drawable> opaqueDrawables = new List<Drawable>();

@@ -5,7 +5,7 @@ namespace Lunacy
 	public class Window : GameWindow
 	{
 		FileManager fm;
-		AssetLoader al;		// handles loading assets from files
+		internal static AssetLoader? al;		// handles loading assets from files
 		Gameplay gp;
 
 		GUI gui;
