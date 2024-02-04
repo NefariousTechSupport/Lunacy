@@ -46,6 +46,7 @@ namespace Lunacy
 			SetIndices(mesh.indices);
 			//Texture? tex = (mesh.shader.albedo == null ? null : new Texture(mesh.shader.albedo));
 			SetMaterial(new Material(mesh.shader));
+			//SetMaterial(new Material(MaterialManager.materials["stdv;whitef"]));
 		}
 
 		public void Prepare()

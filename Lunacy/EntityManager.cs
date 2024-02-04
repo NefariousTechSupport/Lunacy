@@ -194,6 +194,8 @@ namespace Lunacy
 			//Console.WriteLine($"pos:{pos}; scale:{scale}");
 
 			transform = new Transform(pos.ToOpenTK(), Vector3.Zero, Vector3.One * 0.004096f);
+			((Drawable)drawable).AddDrawCall(transform);
+			((Drawable)drawable).ConsolidateDrawCalls();
 			//Console.WriteLine(Utils.ToString(transform));
 		}
 
