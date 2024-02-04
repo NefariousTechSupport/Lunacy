@@ -169,9 +169,9 @@ namespace LibLunacy
 		{
 			IGFile main = fm.igfiles["main.dat"];
 			IGFile.SectionHeader zoneSection = main.QuerySection(0x5000);
-			for(int i = 0; i < zoneSection.count; i++)
+			for (int i = 0; i < zoneSection.count; i++)
 			{
-				CZone zone = new CZone(main, this);
+				CZone zone = new CZone(main, this, i);
 
 				Console.WriteLine("[0x{0:X}] Zone {1} ({2}) has {3} ufrags", "unk", zone.name, i, zone.tfrags.Length);
 				zones.Add((ulong)i, zone);
@@ -192,8 +192,8 @@ namespace LibLunacy
 				zoneStream.Read(zonedat, 0x00, (int)zonePtrs[i].length);
 				MemoryStream zonems = new MemoryStream(zonedat);
 				IGFile igzone = new IGFile(zonems);
-				CZone zone = new CZone(igzone, this);
-				Console.WriteLine("[0x{0:X}] Zone {1} (0x{2:X}) has {3} ufrags.", zonePtrs[i].offset, zone.name, zonePtrs[i].tuid, zone.tfrags.Length);
+				CZone zone = new CZone(igzone, this, i);
+				Console.WriteLine("[0x{0:X}] Zone {1} (0x{2:X}) has {3} ufrags. ({4})", zonePtrs[i].offset, zone.name, zonePtrs[i].tuid, zone.tfrags.Length, i);
 				zones.Add(zonePtrs[i].tuid, zone);
 			}
 		}

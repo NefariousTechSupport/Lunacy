@@ -35,8 +35,11 @@ namespace Lunacy
 
 		public void ShowRegionsWindow()
 		{
+            RenderDockspace();
+            ImGui.SetNextWindowViewport(ImGui.GetWindowViewport().ID);
 			RenderRegionsExplorer();
-			RenderZonesExplorer();
+            ImGui.SetNextWindowViewport(ImGui.GetWindowViewport().ID);
+            RenderZonesExplorer();
 
 			if(true)
 			{
@@ -98,9 +101,36 @@ namespace Lunacy
 			controller.PressChar((char)c);
 		}
 
+        public void RenderDockspace()
+        {
+            ImGuiWindowFlags winflags = ImGuiWindowFlags.NoDocking
+                | ImGuiWindowFlags.NoTitleBar
+                | ImGuiWindowFlags.NoCollapse
+                | ImGuiWindowFlags.NoResize
+                | ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoBringToFrontOnFocus
+                | ImGuiWindowFlags.NoNavFocus;
+            ImGui.SetNextWindowViewport(ImGui.GetWindowViewport().ID);
+            ImGui.SetNextWindowPos(ImGui.GetMainViewport().WorkPos);
+            ImGui.SetNextWindowSize(ImGui.GetMainViewport().WorkSize);
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0);
+            ImGui.Begin("dockspace", winflags);
+
+            uint dockspaceId = ImGui.GetID("dockspace");
+            ImGui.DockSpace(dockspaceId, new(0,0), ImGuiDockNodeFlags.None);
+            ImGui.DockSpaceOverViewport();
+            ImGui.PopStyleVar();
+        }
+
         string mobysSearchArgs = string.Empty;
 		public void RenderRegionsExplorer()
-		{
+        {
+            uint dockspaceId = ImGui.GetID("dockspace");
+            ImGui.SetNextWindowDockID(dockspaceId, ImGuiCond.Once);
+            ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetWorkCenter(), ImGuiCond.FirstUseEver);
             ImGui.Begin("Regions", ImGuiWindowFlags.AlwaysVerticalScrollbar);
             ImGui.InputTextWithHint("Search", "blob_small, QWARK_NURSE, etc...", ref mobysSearchArgs, 0xFF);
             ImGui.Separator();
@@ -140,6 +170,9 @@ namespace Lunacy
         string tiesSearchArgs = string.Empty;
         public void RenderZonesExplorer()
 		{
+            uint dockspaceId = ImGui.GetID("dockspace");
+            ImGui.SetNextWindowDockID(dockspaceId, ImGuiCond.Once);
+            ImGui.SetNextWindowPos(ImGui.GetMainViewport().GetWorkCenter(), ImGuiCond.FirstUseEver);
             ImGui.Begin("Zones", ImGuiWindowFlags.AlwaysVerticalScrollbar);
             ImGui.InputTextWithHint("Search", "terrain, host, etc...", ref tiesSearchArgs, 0xFF);
             ImGui.Separator();
@@ -233,7 +266,7 @@ namespace Lunacy
 			System.Numerics.Vector3 position = selectedEntity.transform.position.ToNumerics();
 			System.Numerics.Vector3 rotation = (selectedEntity.transform.eulerRotation * (180f / MathHelper.Pi)).ToNumerics();
 			System.Numerics.Vector3 scale = selectedEntity.transform.scale.ToNumerics();
-			if(ImGui.InputFloat3("Position", ref position)) posChanged = true;
+			if(ImGui.InputFloat3("position", ref position)) posChanged = true;
 			if(ImGui.InputFloat3("Rotation", ref rotation)) rotChanged = true;
 			if(ImGui.InputFloat3("Scale", ref scale)) scaleChanged = true;
 			if(posChanged) selectedEntity.SetPosition(Utils.ToOpenTK(position));

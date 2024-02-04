@@ -181,19 +181,19 @@ namespace Lunacy
 			(drawable as DrawableList).AddDrawCall(transform);
 			boundingSphere = new Vector4(Utils.ToOpenTK(tieInstance.boundingPosition), tieInstance.boundingRadius);
 		}
-		public Entity(CZone.NewTFrag tfrag)
+		public Entity(CZone.NewTFrag ufrag)
 		{
-			instance = tfrag;
-			drawable = new Drawable(ref tfrag);
+			instance = ufrag;
+			drawable = new Drawable(ref ufrag);
 			name = "ufrag";
-			//transform = new Transform(Utils.ToOpenTK(tfrag.position), Vector3.Zero, Vector3.One);
-			Matrix4 transposed = tfrag.transformation.ToOpenTK();
+			//transform = new Transform(Utils.ToOpenTK(ufrag.position), Vector3.Zero, Vector3.One);
+			//Matrix4 transposed = ufrag.transformation.ToOpenTK();
 
-			transposed.DecomposeMatrix4(out var pos, out var rotQuat, out var scale);
+			//transposed.DecomposeMatrix4(out var pos, out var rotQuat, out var scale);
 
 			//Console.WriteLine($"pos:{pos}; scale:{scale}");
 
-			transform = new Transform(pos.ToOpenTK(), Vector3.Zero, Vector3.One * 0.004096f);
+			transform = new Transform(ufrag.position.ToOpenTK(), Vector3.Zero, Vector3.One);
 			//Console.WriteLine(Utils.ToString(transform));
 		}
 
